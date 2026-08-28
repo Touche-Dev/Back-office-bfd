@@ -31,7 +31,7 @@ export default function Login() {
         try {
             setSubmitting(true);
 
-            const res = await axios.get("http://localhost:3006/");
+            const res = await axios.get("https://back-office-bfd.vercel.app/");
 
             const result = res.data.filter((user) => user.email === email && user.password === password)
 
@@ -54,7 +54,7 @@ export default function Login() {
 
             const role = result[0].role === "super-admin" ? "super-admin" : "admin";
 
-            const tokenRes = await axios.get("http://localhost:3006/token");
+            const tokenRes = await axios.get("https://back-office-bfd.vercel.app/token");
 
             localStorage.setItem("admin#token", JSON.stringify({ token: tokenRes.data, role }));
             navigation("/sidebar/dashboard");
@@ -110,3 +110,9 @@ export default function Login() {
         </div>
     )
 }
+
+
+
+
+
+

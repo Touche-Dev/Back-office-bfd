@@ -21,7 +21,7 @@ export default function Message() {
   }, [context]);
 
   useEffect(() => {
-    axios.get("http://localhost:3006/contact")
+    axios.get("https://back-office-bfd.vercel.app/contact")
       .then((res) => {
         setPresse(res.data)
       }).catch((err) => {
@@ -73,7 +73,7 @@ export default function Message() {
       return value;
     };
 
-    const headers = ["ID", "Nom","Prenom", "Email", "Téléphone", "Sujet", "Méssage", "Date"];
+    const headers = ["ID", "Nom", "Prenom", "Email", "Téléphone", "Sujet", "Méssage", "Date"];
 
     const rows = presse.map((item, key) => [
       key + 1,
@@ -121,7 +121,7 @@ export default function Message() {
                   <MdOutlineMessage className='i' />
                 </div>
                 <div className="user-name">
-                  <h3> {overlayItem.nom+" "+overlayItem.prenom} </h3>
+                  <h3> {overlayItem.nom + " " + overlayItem.prenom} </h3>
                   <div><span>{overlayItem.sujet}</span></div>
                 </div>
               </div>
@@ -140,9 +140,9 @@ export default function Message() {
                   })}
                 </span></div>
               </div>
-
-              <button className='submit' onClick={() => setOverlay(null)}>Fermer</button>
-
+              <div className="btn-overlay">
+                <button className='submit' onClick={() => setOverlay(null)}>Fermer</button>
+              </div>
             </div>
           </div>
         )
@@ -193,7 +193,7 @@ export default function Message() {
                 return (
                   <tr key={key} onClick={() => { setOverlay(true); setOverlayItem(presse.filter((i) => i.id === item.id)[0]) }}>
                     <td>{item.id}</td>
-                    <td className='nom'><span>{item.nom+" "+item.prenom}</span></td>
+                    <td className='nom'><span>{item.nom + " " + item.prenom}</span></td>
                     <td className='pays'>{item.email}</td>
                     <td className='tel'>{item.tel}</td>
                     <td className='fonction'>{item.sujet}</td>

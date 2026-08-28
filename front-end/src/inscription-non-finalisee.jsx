@@ -9,9 +9,11 @@ import { useOutletContext } from "react-router-dom";
 import { FaCheck } from "react-icons/fa6";
 import { FaTimes } from "react-icons/fa";
 import Swal from "sweetalert2";
+import { FaCreditCard, FaMobileAlt, FaHandHoldingUsd } from "react-icons/fa";
 
 export default function InscriptionNonFinalisee() {
   const [inscription, setInscription] = useState([])
+  const [relance, setRelance] = useState([])
   const [overlay, setOverlay] = useState(false)
   const [overlayItem, setOverlayItem] = useState({})
   const context = useOutletContext();
@@ -143,7 +145,7 @@ export default function InscriptionNonFinalisee() {
   }
 
   useEffect(() => {
-    axios.get("http://localhost:3006/inscription")
+    axios.get("https://back-office-bfd.vercel.app/inscription")
       .then((res) => {
         const statusList = ["pending", "expired", "canceled"];
 
@@ -168,6 +170,18 @@ export default function InscriptionNonFinalisee() {
   }, []);
 
 
+  useEffect(() => {
+    axios.get("https://back-office-bfd.vercel.app/relance")
+      .then((res) => {
+        setRelance(res.data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }, []);
+
+
+
 
   return (
     <div className='dashboard inscription'>
@@ -179,7 +193,17 @@ export default function InscriptionNonFinalisee() {
 
               <div className="user">
                 <div className="icon-sexe">
-                  {overlayItem.status === "paid" ? <FaUserCheck className='i' /> : <FaUserClock className='i' />}
+                  {
+                    overlayItem.payment_type === "mollie" ? (
+                      <FaCreditCard className="i" />
+                    ) : overlayItem.payment_type === "mobile_money" ? (
+                      <FaMobileAlt className="i" />
+                    ) : overlayItem.payment_type === "physique" ? (
+                      <FaHandHoldingUsd className="i" />
+                    ) : (
+                      <FaUserClock className="i" />
+                    )
+                  }
                 </div>
                 <div className="user-name">
                   <h3> {overlayItem.nom_prenom} </h3>
@@ -243,26 +267,316 @@ export default function InscriptionNonFinalisee() {
                 <div className='subjects'><h4>Sujets d'interet :</h4><span>{overlayItem.sujets_interet}</span></div>
                 <div><h4>B2B :</h4><span>{overlayItem.b2b}</span></div>
                 <div><h4>Besoin spécifique :</h4><span>{overlayItem.besoin_specifique == "" ? overlayItem.besoin_specifique : "-"}</span></div>
-                <div className='status'><h4>Status :</h4><span className={overlayItem.status == "paid" ? "paid" : overlayItem.status == "expired" ? "expired" : overlayItem.status == "pending" ? "pending" : ""}>{overlayItem.status}</span></div>
+                <div className='status'><h4>Status :</h4><span className={overlayItem.status == "paid" ? "paid" : overlayItem.status == "expired" ? "expired" : overlayItem.status == "pending" ? "pending" : "expired"}>{overlayItem.status}</span></div>
                 <div><h4>Type de paiement:</h4><span>{overlayItem.payment_type != null ? overlayItem.payment_type : "-"}</span></div>
                 {overlayItem.payment_id != null ? <div><h4>ID de paiement:</h4><span>{overlayItem.payment_id}</span></div> : ""}
-                {overlayItem.payment_proof_path != null ? <div><h4>Capture d'ecran:</h4><img src={`https://banguifinancialdays.org/${overlayItem.payment_proof_path}`} alt="" onClick={(e) => window.open(e.currentTarget.src, "_blank")} /></div> : ""}
-                {(overlayItem.payment_proof_path != null && overlayItem.payment_id != null) ? (
-                  <div className='validation'>
-                    <h4>Validation:</h4>
+                {overlayItem.payment_proof_path != null ? <div className='capture'><h4>Capture d'ecran:</h4><img src={`https://banguifinancialdays.org/${overlayItem.payment_proof_path}`} alt="" onClick={(e) => window.open(e.currentTarget.src, "_blank")} /></div> : ""}
+                <div><h4>Date :</h4><span>
+                  {new Date(overlayItem.created_at).toLocaleDateString("fr-FR", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit"
+                  })}
+                </span></div>
+                <div><h4>Nombre d'Email de relance :</h4><span>{relance.find((r) => r.email === overlayItem.email)?.nbr ?? 0}</span></div>
+                <div><h4>Dernière relance :</h4><span>
+                  {(() => {
+                    const item = relance.find((r) => r.email === overlayItem.email);
+                    if (!item?.created_at) return "Aucune";
 
+                    const date = new Date(item.created_at);
+                    date.setHours(date.getHours() + 1);
+
+                    return date.toLocaleDateString("fr-FR", {
+                      day: "2-digit",
+                      month: "2-digit",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit"
+                    });
+                  })()}
+                </span></div>
+              </div>
+              <div className="btn-overlay">
+                {(overlayItem.payment_proof_path != null &&
+                  overlayItem.payment_id != null &&
+                  overlayItem.status != "paid" &&
+                  overlayItem.status != "rejected" &&
+                  !inscription.some((i) => i.email === overlayItem.email && i.status === "paid")) ? (
+                  <div className='validation'><div className="validation-buttons">
+                    <button
+                      type="button"
+                      className="btn-validation"
+                      disabled={overlayItem.status == "paid" ? true : false}
+                      onClick={() => {
+                        Swal.fire({
+                          title: "Valider le paiement ?",
+                          text: "Cette action validera définitivement l'inscription.",
+                          icon: "question",
+                          showCancelButton: true,
+                          confirmButtonText: "Oui, valider",
+                          cancelButtonText: "Annuler",
+                          background: "#123779",
+                          customClass: {
+                            confirmButton: "my-confirm-btn",
+                            cancelButton: "my-cancel-btn",
+                            title: "swal-title",
+                            htmlContainer: "swal-text"
+                          },
+                          buttonsStyling: false
+                        }).then((result) => {
+
+                          // Si l'utilisateur clique sur Annuler → on arrête tout
+                          if (!result.isConfirmed) {
+                            return;
+                          }
+
+                          // Étape 1 : valider le paiement
+                          axios.post("https://back-office-bfd.vercel.app/validation-inscrit", {
+                            token: overlayItem.token
+                          })
+                            .then((res) => {
+
+                              if (res.data !== "Mise à jour réussie !") {
+                                Swal.fire({
+                                  title: "Erreur",
+                                  text: "Une erreur est survenue lors de la validation.",
+                                  icon: "error",
+                                  confirmButtonText: "OK",
+                                  background: "#123779",
+                                  customClass: {
+                                    confirmButton: "my-confirm-btn",
+                                    title: "swal-title",
+                                    htmlContainer: "swal-text"
+                                  },
+                                  buttonsStyling: false
+                                });
+                                return;
+                              }
+
+                              // Étape 2 : générer et envoyer la carte d'invitation
+                              return fetch(
+                                `https://banguifinancialdays.org/generate-invitation-card?token=${encodeURIComponent(overlayItem.token)}`
+                              )
+                                .then(async (response) => {
+                                  const message = await response.text();
+
+                                  if (!response.ok) {
+                                    throw new Error(message);
+                                  }
+
+                                  return message;
+                                })
+                                .then((message) => {
+                                  Swal.fire({
+                                    title: "Paiement validé",
+                                    text: message,
+                                    icon: "success",
+                                    confirmButtonText: "OK",
+                                    background: "#123779",
+                                    customClass: {
+                                      confirmButton: "my-confirm-btn",
+                                      title: "swal-title",
+                                      htmlContainer: "swal-text"
+                                    },
+                                    buttonsStyling: false
+                                  }).then(() => {
+                                    window.location.reload();
+                                  });
+                                })
+                                .catch((error) => {
+                                  Swal.fire({
+                                    title: "Paiement validé, mais...",
+                                    text: error.message || "Le paiement a été validé, mais l'envoi de la carte d'invitation a échoué. Vous pouvez réessayer depuis la liste.",
+                                    icon: "warning",
+                                    confirmButtonText: "OK",
+                                    background: "#123779",
+                                    customClass: {
+                                      confirmButton: "my-confirm-btn",
+                                      title: "swal-title",
+                                      htmlContainer: "swal-text"
+                                    },
+                                    buttonsStyling: false
+                                  }).then(() => {
+                                    window.location.reload();
+                                  });
+                                });
+
+                            })
+                            .catch((err) => {
+
+                              console.log(err);
+
+                              Swal.fire({
+                                title: "Erreur",
+                                text: "Une erreur est survenue lors de la validation.",
+                                icon: "error",
+                                confirmButtonText: "OK",
+                                background: "#123779",
+                                customClass: {
+                                  confirmButton: "my-confirm-btn",
+                                  title: "swal-title",
+                                  htmlContainer: "swal-text"
+                                },
+                                buttonsStyling: false
+                              });
+
+                            });
+                        });
+                      }}
+                    ><FaCheck className="i" />
+                      Valider le paiement
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-rejeter"
+                      onClick={() => {
+                        Swal.fire({
+                          title: "Rejeter l'inscription ?",
+                          input: "select",
+                          inputOptions: {
+                            capture_illisible: "Capture d'écran illisible",
+                            montant_incorrect: "Montant incorrect",
+                            id_invalide: "ID de transaction invalide",
+                            preuve_non_conforme: "Preuve non conforme",
+                            autre: "Autre raison"
+                          },
+                          inputPlaceholder: "Sélectionnez un motif",
+                          showCancelButton: true,
+                          confirmButtonText: "Continuer",
+                          cancelButtonText: "Annuler",
+                          background: "#123779",
+                          customClass: {
+                            confirmButton: "my-confirm-btn",
+                            cancelButton: "my-cancel-btn",
+                            title: "swal-title",
+                            htmlContainer: "swal-text",
+                            input: "swal-select"
+                          },
+                          buttonsStyling: false,
+                          inputValidator: (value) => {
+                            if (!value) return "Vous devez sélectionner un motif";
+                          }
+                        }).then((selectResult) => {
+                          if (!selectResult.isConfirmed) return;
+
+                          const motifChoisi = selectResult.value;
+
+                          const finaliserRejet = (motifFinal) => {
+                            Swal.fire({
+                              title: "Confirmer le rejet ?",
+                              text: "Cette action rejettera l'inscription et une notification sera envoyée à l'inscrit.",
+                              icon: "warning",
+                              showCancelButton: true,
+                              confirmButtonText: "Oui, rejeter",
+                              cancelButtonText: "Annuler",
+                              background: "#123779",
+                              customClass: {
+                                confirmButton: "my-confirm-btn",
+                                cancelButton: "my-cancel-btn",
+                                title: "swal-title",
+                                htmlContainer: "swal-text"
+                              },
+                              buttonsStyling: false
+                            }).then((confirmResult) => {
+                              if (!confirmResult.isConfirmed) return;
+
+                              fetch(
+                                `https://banguifinancialdays.org/rejected?token=${encodeURIComponent(overlayItem.token)}&motif=${encodeURIComponent(motifFinal)}`
+                              )
+                                .then(async (response) => {
+                                  const message = await response.text();
+                                  if (!response.ok) throw new Error(message);
+                                  return message;
+                                })
+                                .then((message) => {
+                                  Swal.fire({
+                                    title: "Inscription rejetée",
+                                    text: message,
+                                    icon: "success",
+                                    confirmButtonText: "OK",
+                                    background: "#123779",
+                                    customClass: {
+                                      confirmButton: "my-confirm-btn",
+                                      title: "swal-title",
+                                      htmlContainer: "swal-text"
+                                    },
+                                    buttonsStyling: false
+                                  }).then(() => {
+                                    window.location.reload();
+                                  });
+                                })
+                                .catch((error) => {
+                                  Swal.fire({
+                                    title: "Erreur",
+                                    text: error.message || "Une erreur est survenue lors du rejet.",
+                                    icon: "error",
+                                    confirmButtonText: "OK",
+                                    background: "#123779",
+                                    customClass: {
+                                      confirmButton: "my-confirm-btn",
+                                      title: "swal-title",
+                                      htmlContainer: "swal-text"
+                                    },
+                                    buttonsStyling: false
+                                  });
+                                });
+                            });
+                          };
+
+                          // Si "Autre raison" est choisi, on demande de préciser
+                          if (motifChoisi === "autre") {
+                            Swal.fire({
+                              title: "Précisez le motif",
+                              input: "textarea",
+                              inputPlaceholder: "Décrivez la raison du rejet...",
+                              showCancelButton: true,
+                              confirmButtonText: "Continuer",
+                              cancelButtonText: "Annuler",
+                              background: "#123779",
+                              customClass: {
+                                confirmButton: "my-confirm-btn",
+                                cancelButton: "my-cancel-btn",
+                                title: "swal-title",
+                                htmlContainer: "swal-text",
+                                input: "swal-textarea"
+                              },
+                              buttonsStyling: false,
+                              inputValidator: (value) => {
+                                if (!value) return "Merci de préciser le motif";
+                              }
+                            }).then((textResult) => {
+                              if (!textResult.isConfirmed) return;
+                              finaliserRejet(textResult.value);
+                            });
+                          } else {
+                            finaliserRejet(motifChoisi);
+                          }
+                        });
+                      }}
+                    ><FaTimes className="i" />
+                      Rejeter l'inscription
+                    </button>
+                  </div>
+                  </div>
+                ) : ""}
+                {!inscription.some(
+                  (item) => item.email === overlayItem.email && item.status === "paid"
+                ) && overlayItem.payment_type !== "mobile_money" ? (
+                  <div className='validation'>
                     <div className="validation-buttons">
                       <button
                         type="button"
-                        className="btn-validation"
-                        disabled={overlayItem.status == "paid" ? true : false}
+                        className="btn-relance"
                         onClick={() => {
                           Swal.fire({
-                            title: "Valider le paiement ?",
-                            text: "Cette action validera définitivement l'inscription.",
+                            title: "Relancer l'inscription ?",
+                            text: "Un e-mail de rappel sera envoyé à l'inscrit pour finaliser son paiement.",
                             icon: "question",
                             showCancelButton: true,
-                            confirmButtonText: "Oui, valider",
+                            confirmButtonText: "Oui, relancer",
                             cancelButtonText: "Annuler",
                             background: "#123779",
                             customClass: {
@@ -279,61 +593,23 @@ export default function InscriptionNonFinalisee() {
                               return;
                             }
 
-                            // Seulement après "Oui, valider"
-                            axios.post("http://localhost:3006/validation-inscrit", {
-                              token: overlayItem.token
-                            })
-                              .then((res) => {
+                            fetch(
+                              `https://banguifinancialdays.org/relancer-inscrit?email=${encodeURIComponent(overlayItem.email)}`
+                            )
+                              .then(async (response) => {
+                                const message = await response.text();
 
-                                if (res.data === "Mise à jour réussie !") {
-
-                                  Swal.fire({
-                                    title: "Paiement validé",
-                                    text: "L'inscription a été validée avec succès. La carte d'invitation va être générée et envoyée dans un nouvel onglet.",
-                                    icon: "success",
-                                    confirmButtonText: "OK",
-                                    background: "#123779",
-                                    customClass: {
-                                      confirmButton: "my-confirm-btn",
-                                      title: "swal-title",
-                                      htmlContainer: "swal-text"
-                                    },
-                                    buttonsStyling: false
-                                  }).then(() => {
-                                    window.open(
-                                      `https://banguifinancialdays.org/generate-invitation-card.php?token=${encodeURIComponent(overlayItem.token)}`,
-                                      "_blank"
-                                    );
-                                    window.location.reload();
-                                  });
-
-                                } else {
-
-                                  Swal.fire({
-                                    title: "Erreur",
-                                    text: "Une erreur est survenue lors de la validation.",
-                                    icon: "error",
-                                    confirmButtonText: "OK",
-                                    background: "#123779",
-                                    customClass: {
-                                      confirmButton: "my-confirm-btn",
-                                      title: "swal-title",
-                                      htmlContainer: "swal-text"
-                                    },
-                                    buttonsStyling: false
-                                  });
-
+                                if (!response.ok) {
+                                  throw new Error(message);
                                 }
 
+                                return message;
                               })
-                              .catch((err) => {
-
-                                console.log(err);
-
+                              .then((message) => {
                                 Swal.fire({
-                                  title: "Erreur",
-                                  text: "Une erreur est survenue lors de la validation.",
-                                  icon: "error",
+                                  title: "Relance envoyée !",
+                                  text: message,
+                                  icon: "success",
                                   confirmButtonText: "OK",
                                   background: "#123779",
                                   customClass: {
@@ -342,34 +618,32 @@ export default function InscriptionNonFinalisee() {
                                     htmlContainer: "swal-text"
                                   },
                                   buttonsStyling: false
+                                })
+                              })
+                              .catch((error) => {
+                                Swal.fire({
+                                  icon: "error",
+                                  title: "Erreur",
+                                  text: error.message || "Impossible d'envoyer la relance."
                                 });
-
                               });
+
                           });
                         }}
-                      ><FaCheck className="i" />
-                        Valider le paiement
+                      >
+                        Relancer l'inscription
                       </button>
                     </div>
                   </div>
                 ) : ""}
-                <div><h4>Date :</h4><span>
-                  {new Date(overlayItem.created_at).toLocaleDateString("fr-FR", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit"
-                  })}
-                </span></div>
+                <button className='submit' onClick={() => setOverlay(null)}>Fermer</button>
               </div>
-              <button className='submit' onClick={() => setOverlay(null)}>Fermer</button>
             </div>
           </div>
         )
       }
       <div className="header">
-        <h4>Inscriptions</h4>
+        <h4>Inscriptions incomplètes</h4>
 
         <div className="select-wrapper">
           <select
@@ -421,8 +695,18 @@ export default function InscriptionNonFinalisee() {
             ).map((item, key) => {
               return (
                 <tr key={key} onClick={() => { setOverlay(true); setOverlayItem(inscription.filter((i) => i.id === item.id)[0]) }}>
-                  <td>{key + 1}</td>
-                  <td className='nom'> <div className="icon">{item.status === "paid" ? <FaUserCheck className='i' /> : <FaUserClock className='i' />}</div><span>{item.nom_prenom}</span></td>
+                  <td>{item.id}</td>
+                  <td className='nom'> <div className="icon">{
+                    item.payment_type === "mollie" ? (
+                      <FaCreditCard className="i" />
+                    ) : item.payment_type === "mobile_money" ? (
+                      <FaMobileAlt className="i" />
+                    ) : item.payment_type === "physique" ? (
+                      <FaHandHoldingUsd className="i" />
+                    ) : (
+                      <FaUserClock className="i" />
+                    )
+                  }</div><span>{item.nom_prenom}</span></td>
                   <td className='pays'>{item.nationalite}</td>
                   <td className='email'>{item.email}</td>
                   <td className='institution'>{item.organisation}</td>

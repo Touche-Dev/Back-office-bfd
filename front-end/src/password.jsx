@@ -28,7 +28,7 @@ export default function Password() {
     try {
       setSubmitting(true);
 
-      const ress = await axios.get("http://localhost:3006/");
+      const ress = await axios.get("https://back-office-bfd.vercel.app/");
 
       const result = ress.data.filter(
         (user) =>
@@ -93,7 +93,7 @@ export default function Password() {
         return;
       }
 
-      const res = await axios.post("http://localhost:3006/newPassword", {
+      const res = await axios.post("https://back-office-bfd.vercel.app/newPassword", {
         mdp: newPassword,
         role: JSON.parse(localStorage.getItem("admin#token")).role
       });

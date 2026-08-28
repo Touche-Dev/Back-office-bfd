@@ -691,7 +691,13 @@ tbody tr:hover {
     border-radius: 5px;
 }
 
-.overlay-card .submit {
+.btn-overlay {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.btn-overlay button {
     margin-top: 30px;
     width: fit-content;
     min-width: 20%;
@@ -705,12 +711,30 @@ tbody tr:hover {
     transition: all 0.4s;
     position: relative;
     z-index: 1;
-    background: #123779;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
     border-radius: 3px;
-    padding: 15px 0px;
+    padding: 15px 30px;
     border: none;
     cursor: pointer;
+}
+
+.btn-overlay .btn-validation {
+    background: #16a34a !important;
+}
+
+.btn-overlay .btn-rejeter {
+    background: #EF4444 !important;
+}
+
+.btn-overlay .btn-relance {
+    background: #d49d3f !important;
+}
+
+.overlay-card .submit {
+    background: #123779 !important;
 }
 
 @keyframes popup {
@@ -1204,6 +1228,10 @@ tbody tr:hover {
     font-size: 12px;
     color: rgba(0, 0, 0, 0.35);
     margin-top: 3px;
+}
+
+.capture {
+    flex-direction: column;
 }
 
 
@@ -1847,4 +1875,39 @@ tbody tr:hover {
     .insc-inputcoche:has(#innovation) {
         grid-template-columns: 1fr;
     }
+}
+
+.swal2-select {
+    background-color: #ffffff !important;
+    color: #123779 !important;
+    border-radius: 8px !important;
+    font-size: 16px !important;
+    font-style: normal !important;
+    font-weight: 400 !important;
+    line-height: 20px !important;
+    padding: 10px 14px !important;
+    font-family: Bricolage Grotesque, sans-serif;
+}
+
+.swal2-textarea {
+    color: #ffffff !important;
+    font-size: 16px !important;
+    font-style: normal !important;
+    font-weight: 400 !important;
+    line-height: 20px !important;
+    font-family: Bricolage Grotesque, sans-serif;
+}
+
+.swal2-textarea::placeholder {
+    color: rgb(255, 255, 255,0.5) !important;
+    font-size: 16px !important;
+    font-style: normal !important;
+    font-weight: 400 !important;
+    line-height: 20px !important;
+    font-family: Bricolage Grotesque, sans-serif;
+}
+
+.swal-textarea:focus {
+    outline: none !important;
+    box-shadow: 0 0 0 2px #ffffff55 !important;
 }

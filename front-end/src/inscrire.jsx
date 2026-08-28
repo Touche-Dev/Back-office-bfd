@@ -251,27 +251,54 @@ export default function InscriptionForm({ onSubmit, passId }) {
       if (onSubmit) {
         await onSubmit(payload);
       } else {
-        const response = await axios.post("http://localhost:3006/inscrire", { payload });
+        const response = await axios.post("https://back-office-bfd.vercel.app/inscrire", { payload });
+
         if (response.data.message == "Inscription enregistrée avec succès.") {
-          Swal.fire({
-            title: "Paiement validé",
-            text: "L'inscription a été validée avec succès. La carte d'invitation va être générée et envoyée dans un nouvel onglet.",
-            icon: "success",
-            confirmButtonText: "OK",
-            background: "#123779",
-            customClass: {
-              confirmButton: "my-confirm-btn",
-              title: "swal-title",
-              htmlContainer: "swal-text"
-            },
-            buttonsStyling: false
-          }).then(() => {
-            window.open(
-              `https://banguifinancialdays.org/generate-invitation-card.php?token=${encodeURIComponent(response.data.token)}`,
-              "_blank"
+
+          try {
+            const cardResponse = await fetch(
+              `https://banguifinancialdays.org/generate-invitation-card?token=${encodeURIComponent(response.data.token)}`
             );
-            window.location.reload();
-          });
+            const cardMessage = await cardResponse.text();
+
+            if (!cardResponse.ok) {
+              throw new Error(cardMessage);
+            }
+
+            Swal.fire({
+              title: "Paiement validé",
+              text: cardMessage,
+              icon: "success",
+              confirmButtonText: "OK",
+              background: "#123779",
+              customClass: {
+                confirmButton: "my-confirm-btn",
+                title: "swal-title",
+                htmlContainer: "swal-text"
+              },
+              buttonsStyling: false
+            }).then(() => {
+              window.location.reload();
+            });
+
+          } catch (cardError) {
+            Swal.fire({
+              title: "Paiement validé, mais...",
+              text: cardError.message || "Le paiement a été validé, mais l'envoi de la carte d'invitation a échoué. Vous pouvez réessayer depuis la liste.",
+              icon: "warning",
+              confirmButtonText: "OK",
+              background: "#123779",
+              customClass: {
+                confirmButton: "my-confirm-btn",
+                title: "swal-title",
+                htmlContainer: "swal-text"
+              },
+              buttonsStyling: false
+            }).then(() => {
+              window.location.reload();
+            });
+          }
+
         } else if (response.data.message == "ERREUR: Cette adresse e-mail possède déjà une inscription validée ou traitée pour les Bangui Financial Days 2026.") {
           Swal.fire({
             title: "Inscription déjà traitée",

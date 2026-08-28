@@ -19,7 +19,7 @@ export default function Dashboard() {
   const [rapportToday, setRapportToday] = useState([])
 
   useEffect(() => {
-    axios.get("http://localhost:3006/inscription")
+    axios.get("https://back-office-bfd.vercel.app/inscription")
       .then((res) => {
         const today = new Date();
         setInscription(res.data)
@@ -68,7 +68,7 @@ export default function Dashboard() {
               <div className="nbr">
                 <span>{
                   (() => {
-                    const allowedStatuses = ["pending", "canceled", "expired"];
+                    const allowedStatuses = ["pending", "canceled", "expired","failed"];
                     const excludedStatus = "paid";
 
                     // regrouper les items par email
@@ -103,7 +103,7 @@ export default function Dashboard() {
               <div className="nbr">
                 <span>{(inscriptionToday.filter((item) => item.status == "paid")).length +
                   (() => {
-                    const allowedStatuses = ["pending", "canceled", "expired"];
+                    const allowedStatuses = ["pending", "canceled", "expired","failed"];
                     const excludedStatus = "paid";
 
                     // regrouper les items par email
@@ -150,7 +150,7 @@ export default function Dashboard() {
               <div className="nbr">
                 <span>{
                   (() => {
-                    const allowedStatuses = ["pending", "canceled", "expired"];
+                    const allowedStatuses = ["pending", "canceled", "expired","failed"];
                     const excludedStatus = "paid";
 
                     // regrouper les items par email
@@ -184,7 +184,7 @@ export default function Dashboard() {
               <div className="nbr">
                 <span>{(inscription.filter((item) => item.status == "paid")).length +
                   (() => {
-                    const allowedStatuses = ["pending", "canceled", "expired"];
+                    const allowedStatuses = ["pending", "canceled", "expired","failed"];
                     const excludedStatus = "paid";
 
                     // regrouper les items par email

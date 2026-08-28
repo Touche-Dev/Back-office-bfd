@@ -17,7 +17,7 @@ export default function Newsletter() {
   }, [context]);
 
   useEffect(() => {
-    axios.get("http://localhost:3006/newsletter")
+    axios.get("https://back-office-bfd.vercel.app/newsletter")
       .then((res) => {
         setnewsletter(res.data)
       }).catch((err) => {

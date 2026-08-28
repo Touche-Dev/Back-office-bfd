@@ -9,6 +9,7 @@ import { useOutletContext } from "react-router-dom";
 import { FaCheck } from "react-icons/fa6";
 import { FaTimes } from "react-icons/fa";
 import Swal from "sweetalert2";
+import { FaCreditCard, FaMobileAlt, FaHandHoldingUsd } from "react-icons/fa";
 
 export default function InscriptionReussie() {
   const [inscription, setInscription] = useState([])
@@ -143,9 +144,9 @@ export default function InscriptionReussie() {
   }
 
   useEffect(() => {
-    axios.get("http://localhost:3006/inscription")
+    axios.get("https://back-office-bfd.vercel.app/inscription")
       .then((res) => {
-         setInscription(res.data.filter((item) => item.status == "paid"))
+        setInscription(res.data.filter((item) => item.status == "paid"))
       }).catch((err) => {
         console.log(err)
       })
@@ -163,7 +164,17 @@ export default function InscriptionReussie() {
 
               <div className="user">
                 <div className="icon-sexe">
-                  {overlayItem.status === "paid" ? <FaUserCheck className='i' /> : <FaUserClock className='i' />}
+                  {
+                    overlayItem.payment_type === "mollie" ? (
+                      <FaCreditCard className="i" />
+                    ) : overlayItem.payment_type === "mobile_money" ? (
+                      <FaMobileAlt className="i" />
+                    ) : overlayItem.payment_type === "physique" ? (
+                      <FaHandHoldingUsd className="i" />
+                    ) : (
+                      <FaUserClock className="i" />
+                    )
+                  }
                 </div>
                 <div className="user-name">
                   <h3> {overlayItem.nom_prenom} </h3>
@@ -230,113 +241,7 @@ export default function InscriptionReussie() {
                 <div className='status'><h4>Status :</h4><span className={overlayItem.status == "paid" ? "paid" : overlayItem.status == "expired" ? "expired" : overlayItem.status == "pending" ? "pending" : ""}>{overlayItem.status}</span></div>
                 <div><h4>Type de paiement:</h4><span>{overlayItem.payment_type != null ? overlayItem.payment_type : "-"}</span></div>
                 {overlayItem.payment_id != null ? <div><h4>ID de paiement:</h4><span>{overlayItem.payment_id}</span></div> : ""}
-                {overlayItem.payment_proof_path != null ? <div><h4>Capture d'ecran:</h4><img src={`https://banguifinancialdays.org/${overlayItem.payment_proof_path}`} alt="" onClick={(e) => window.open(e.currentTarget.src, "_blank")} /></div> : ""}
-                {(overlayItem.payment_proof_path != null && overlayItem.payment_id != null) ? (
-                  <div className='validation'>
-                    <h4>Validation:</h4>
-
-                    <div className="validation-buttons">
-                      <button
-                        type="button"
-                        className="btn-validation"
-                        disabled={overlayItem.status=="paid"?true:false}
-                        onClick={() => {
-                          Swal.fire({
-                            title: "Valider le paiement ?",
-                            text: "Cette action validera définitivement l'inscription.",
-                            icon: "question",
-                            showCancelButton: true,
-                            confirmButtonText: "Oui, valider",
-                            cancelButtonText: "Annuler",
-                            background: "#123779",
-                            customClass: {
-                              confirmButton: "my-confirm-btn",
-                              cancelButton: "my-cancel-btn",
-                              title: "swal-title",
-                              htmlContainer: "swal-text"
-                            },
-                            buttonsStyling: false
-                          }).then((result) => {
-
-                            // Si l'utilisateur clique sur Annuler → on arrête tout
-                            if (!result.isConfirmed) {
-                              return;
-                            }
-
-                            // Seulement après "Oui, valider"
-                            axios.post("http://localhost:3006/validation-inscrit", {
-                              token: overlayItem.token
-                            })
-                              .then((res) => {
-
-                                if (res.data === "Mise à jour réussie !") {
-
-                                  Swal.fire({
-                                    title: "Paiement validé",
-                                    text: "L'inscription a été validée avec succès. La carte d'invitation va être générée et envoyée dans un nouvel onglet.",
-                                    icon: "success",
-                                    confirmButtonText: "OK",
-                                    background: "#123779",
-                                    customClass: {
-                                      confirmButton: "my-confirm-btn",
-                                      title: "swal-title",
-                                      htmlContainer: "swal-text"
-                                    },
-                                    buttonsStyling: false
-                                  }).then(() => {
-                                    window.open(
-                                      `https://banguifinancialdays.org/generate-invitation-card.php?token=${encodeURIComponent(overlayItem.token)}`,
-                                      "_blank"
-                                    );
-                                     window.location.reload();
-                                  });
-
-                                } else {
-
-                                  Swal.fire({
-                                    title: "Erreur",
-                                    text: "Une erreur est survenue lors de la validation.",
-                                    icon: "error",
-                                    confirmButtonText: "OK",
-                                    background: "#123779",
-                                    customClass: {
-                                      confirmButton: "my-confirm-btn",
-                                      title: "swal-title",
-                                      htmlContainer: "swal-text"
-                                    },
-                                    buttonsStyling: false
-                                  });
-
-                                }
-
-                              })
-                              .catch((err) => {
-
-                                console.log(err);
-
-                                Swal.fire({
-                                  title: "Erreur",
-                                  text: "Une erreur est survenue lors de la validation.",
-                                  icon: "error",
-                                  confirmButtonText: "OK",
-                                  background: "#123779",
-                                  customClass: {
-                                    confirmButton: "my-confirm-btn",
-                                    title: "swal-title",
-                                    htmlContainer: "swal-text"
-                                  },
-                                  buttonsStyling: false
-                                });
-
-                              });
-                          });
-                        }}
-                      ><FaCheck className="i" />
-                        Valider le paiement
-                      </button>
-                    </div>
-                  </div>
-                ) : ""}
+                {overlayItem.payment_proof_path != null ? <div className='capture'><h4>Capture d'ecran:</h4><img src={`https://banguifinancialdays.org/${overlayItem.payment_proof_path}`} alt="" onClick={(e) => window.open(e.currentTarget.src, "_blank")} /></div> : ""}
                 <div><h4>Date :</h4><span>
                   {new Date(overlayItem.created_at).toLocaleDateString("fr-FR", {
                     day: "2-digit",
@@ -347,13 +252,15 @@ export default function InscriptionReussie() {
                   })}
                 </span></div>
               </div>
-              <button className='submit' onClick={() => setOverlay(null)}>Fermer</button>
+              <div className="btn-overlay">
+                <button className='submit' onClick={() => setOverlay(null)}>Fermer</button>
+              </div>
             </div>
           </div>
         )
       }
       <div className="header">
-        <h4>Inscriptions</h4>
+        <h4>Inscriptions finalisées</h4>
 
         <div className="select-wrapper">
           <select
@@ -405,8 +312,18 @@ export default function InscriptionReussie() {
             ).map((item, key) => {
               return (
                 <tr key={key} onClick={() => { setOverlay(true); setOverlayItem(inscription.filter((i) => i.id === item.id)[0]) }}>
-                  <td>{key + 1}</td>
-                  <td className='nom'> <div className="icon">{item.status === "paid" ? <FaUserCheck className='i' /> : <FaUserClock className='i' />}</div><span>{item.nom_prenom}</span></td>
+                  <td>{item.id}</td>
+                  <td className='nom'> <div className="icon">{
+                    item.payment_type === "mollie" ? (
+                      <FaCreditCard className="i" />
+                    ) : item.payment_type === "mobile_money" ? (
+                      <FaMobileAlt className="i" />
+                    ) : item.payment_type === "physique" ? (
+                      <FaHandHoldingUsd className="i" />
+                    ) : (
+                      <FaUserClock className="i" />
+                    )
+                  }</div><span>{item.nom_prenom}</span></td>
                   <td className='pays'>{item.nationalite}</td>
                   <td className='email'>{item.email}</td>
                   <td className='institution'>{item.organisation}</td>

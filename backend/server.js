@@ -80,6 +80,18 @@ app.get("/inscription", (req, res) => {
         });
 });
 
+app.get("/relance", (req, res) => {
+    const sql = "SELECT * FROM relance";
+    db.query(sql)
+        .then(([rows]) => {
+            res.send(rows);
+        })
+        .catch(err => {
+            console.error("Erreur SQL :", err);
+            res.status(500).send("Erreur serveur");
+        });
+});
+
 app.post("/validation-inscrit", (req, res) => {
     const { token } = req.body
 
