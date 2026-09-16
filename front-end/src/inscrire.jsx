@@ -61,6 +61,7 @@ const nationalites = [
 ];
 
 const INITIAL_STATE = {
+  type_participant: "",
   nom_prenom: "",
   date_naissance: "",
   nationalite: "",
@@ -140,7 +141,7 @@ export default function InscriptionForm({ onSubmit, passId }) {
   }
 
   // Équivalent des validations PHP ($requiredFields, sujets, b2b, besoinspecifique, email, tel, consentements)
-  function validate() {
+  /*function validate() {
     const errors = [];
 
     const requiredFields = {
@@ -198,6 +199,29 @@ export default function InscriptionForm({ onSubmit, passId }) {
     }
 
     return errors;
+  }*/
+
+
+  function validate() {
+    const errors = [];
+
+    const requiredFields = {
+      nom_prenom: "Nom et prénom",
+      email: "Adresse e-mail",
+      fonction: "Fonction / Poste occupé",
+    };
+
+    Object.entries(requiredFields).forEach(([key, label]) => {
+      if (!form[key] || !String(form[key]).trim()) {
+        errors.push(label);
+      }
+    });
+
+    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      errors.push("Adresse e-mail (format invalide)");
+    }
+
+    return errors;
   }
 
   async function handleSubmit(e) {
@@ -227,6 +251,7 @@ export default function InscriptionForm({ onSubmit, passId }) {
 
     // Payload équivalent à ce que le PHP insérait en base (sujets_interet, besoin_specifique, etc.)
     const payload = {
+      type_participant: form.type_participant.trim(),
       nom_prenom: form.nom_prenom.trim(),
       date_naissance: form.date_naissance.trim(),
       nationalite: form.nationalite.trim(),
@@ -251,7 +276,7 @@ export default function InscriptionForm({ onSubmit, passId }) {
       if (onSubmit) {
         await onSubmit(payload);
       } else {
-        const response = await axios.post("https://back-office-bfd.vercel.app/inscrire", { payload });
+        const response = await axios.post("http://localhost:3006/inscrire", { payload });
 
         if (response.data.message == "Inscription enregistrée avec succès.") {
 
@@ -352,6 +377,21 @@ export default function InscriptionForm({ onSubmit, passId }) {
     <form className="insc-form" onSubmit={handleSubmit}>
       <h3>1. Informations personnelles</h3>
       <div className="insc-input">
+        <div>
+          <label htmlFor="type_participant">Type de participant</label>
+          <select
+            id="type_participant"
+            name="type_participant"
+            value={form.type_participant}
+            onChange={handleChange}
+          >
+            <option value="">Type de participant</option>
+            <option value="Pass accès complet">Participant</option>
+            <option value="organisateur">Organisateur</option>
+            <option value="sponsor">Sponsor</option>
+            <option value="Partenaire">Partenaire</option>
+          </select>
+        </div>
         <div>
           <label htmlFor="nom_prenom">Nom et prénom</label>
           <input

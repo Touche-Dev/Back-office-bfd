@@ -22,7 +22,14 @@ export default function Dashboard() {
     axios.get("https://back-office-bfd.vercel.app/inscription")
       .then((res) => {
         const today = new Date();
-        setInscription(res.data)
+        if (JSON.parse(localStorage.getItem("admin#token")).role == "super-admin") {
+          setInscription(res.data)
+        } else {
+          setInscription(
+            res.data.filter((i) => i.payment_type === "physique")
+          );
+        }
+
 
         const result = res.data.filter(item => {
           const itemDate = new Date(item.created_at.replace(" ", "T"));
@@ -68,7 +75,7 @@ export default function Dashboard() {
               <div className="nbr">
                 <span>{
                   (() => {
-                    const allowedStatuses = ["pending", "canceled", "expired","failed"];
+                    const allowedStatuses = ["pending", "canceled", "expired", "failed"];
                     const excludedStatus = "paid";
 
                     // regrouper les items par email
@@ -103,7 +110,7 @@ export default function Dashboard() {
               <div className="nbr">
                 <span>{(inscriptionToday.filter((item) => item.status == "paid")).length +
                   (() => {
-                    const allowedStatuses = ["pending", "canceled", "expired","failed"];
+                    const allowedStatuses = ["pending", "canceled", "expired", "failed"];
                     const excludedStatus = "paid";
 
                     // regrouper les items par email
@@ -150,7 +157,7 @@ export default function Dashboard() {
               <div className="nbr">
                 <span>{
                   (() => {
-                    const allowedStatuses = ["pending", "canceled", "expired","failed"];
+                    const allowedStatuses = ["pending", "canceled", "expired", "failed"];
                     const excludedStatus = "paid";
 
                     // regrouper les items par email
@@ -184,7 +191,7 @@ export default function Dashboard() {
               <div className="nbr">
                 <span>{(inscription.filter((item) => item.status == "paid")).length +
                   (() => {
-                    const allowedStatuses = ["pending", "canceled", "expired","failed"];
+                    const allowedStatuses = ["pending", "canceled", "expired", "failed"];
                     const excludedStatus = "paid";
 
                     // regrouper les items par email

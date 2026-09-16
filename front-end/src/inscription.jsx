@@ -157,7 +157,13 @@ export default function Inscription() {
           return false;
         });
 
-        setInscription(res.data)
+        if (JSON.parse(localStorage.getItem("admin#token")).role == "super-admin") {
+          setInscription(res.data)
+        } else {
+          setInscription(
+            res.data.filter((i) => i.payment_type === "physique")
+          );
+        }
       }).catch((err) => {
         console.log(err)
       })

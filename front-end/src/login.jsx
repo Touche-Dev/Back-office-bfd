@@ -56,8 +56,15 @@ export default function Login() {
 
             const tokenRes = await axios.get("https://back-office-bfd.vercel.app/token");
 
+
             localStorage.setItem("admin#token", JSON.stringify({ token: tokenRes.data, role }));
-            navigation("/sidebar/dashboard");
+
+            if (role=="super-admin") {
+                navigation("/sidebar/dashboard");
+            } else {
+                navigation("/sidebar/inscrire");
+            }
+            
 
         } catch (err) {
             console.log(err);

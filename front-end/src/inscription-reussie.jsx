@@ -146,7 +146,14 @@ export default function InscriptionReussie() {
   useEffect(() => {
     axios.get("https://back-office-bfd.vercel.app/inscription")
       .then((res) => {
-        setInscription(res.data.filter((item) => item.status == "paid"))
+        //setInscription(res.data.filter((item) => item.status == "paid"))
+        if (JSON.parse(localStorage.getItem("admin#token")).role == "super-admin") {
+          setInscription(res.data.filter((item) => item.status == "paid"))
+        } else {
+          setInscription(
+            res.data.filter((item) => item.status == "paid").filter((i) => i.payment_type === "physique")
+          );
+        }
       }).catch((err) => {
         console.log(err)
       })

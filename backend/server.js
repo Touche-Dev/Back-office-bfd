@@ -154,7 +154,7 @@ app.post("/inscrire", (req, res) => {
                 payload.b2b,                 // b2b
                 payload.besoinspecifique,    // besoin_specifique
                 "physique",                        // payment_type
-                "Pass accès complet",        // pass
+                payload.type_participant,        // pass
                 3,                            // days
                 "75000",                      // prix
                 "FCFA",                        // devise

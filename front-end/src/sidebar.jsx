@@ -29,6 +29,23 @@ export default function Sidebar() {
     const location = useLocation();
     const navigation = useNavigate()
 
+    const [role, setRole] = useState(null);
+
+    useEffect(() => {
+        const token = localStorage.getItem("admin#token");
+        if (token) {
+            try {
+                const parsed = JSON.parse(token);
+                setRole(parsed.role);
+            } catch (error) {
+                console.error("Token invalide :", error);
+                setRole(null);
+            }
+        }
+    }, []);
+
+    const isSuperAdmin = role === "super-admin";
+
     /*
      const decoded = jwtDecode(localStorage.getItem("admin#token"));
     
@@ -75,6 +92,7 @@ export default function Sidebar() {
                 </div>
                 <div className="menu-close"><IoCloseCircle className='i' onClick={() => setOpenMenu(!openMenu)} /></div>
                 <ul className="menu">
+
                     <li>
                         <NavLink to="/sidebar/dashboard" className={({ isActive }) => isActive ? "link active" : "link"}>
                             <span><RiHome4Line className='i' />Dashboard</span>
@@ -88,31 +106,39 @@ export default function Sidebar() {
                         <div className={open1 ? "submenu active" : "submenu"}>
                             <NavLink to="/sidebar/inscription" className={({ isActive }) => isActive ? "link active" : "link"}><span>Total</span></NavLink>
                         </div>
-                        <div className={open1 ? "submenu active" : "submenu"}>
-                            <NavLink to="/sidebar/inscription-reussie" className={({ isActive }) => isActive ? "link active" : "link"}><span>Réussies</span></NavLink>
-                        </div>
-                        <div className={open1 ? "submenu active" : "submenu"}>
-                            <NavLink to="/sidebar/inscription-non-finalisee" className={({ isActive }) => isActive ? "link active" : "link"}><span>Non finalisées</span></NavLink>
-                        </div>
+                        {isSuperAdmin && (
+                            <>
+                                <div className={open1 ? "submenu active" : "submenu"}>
+                                    <NavLink to="/sidebar/inscription-reussie" className={({ isActive }) => isActive ? "link active" : "link"}><span>Réussies</span></NavLink>
+                                </div>
+                                <div className={open1 ? "submenu active" : "submenu"}>
+                                    <NavLink to="/sidebar/inscription-non-finalisee" className={({ isActive }) => isActive ? "link active" : "link"}><span>Non finalisées</span></NavLink>
+                                </div>
+                            </>
+                        )}
                         <div className={open1 ? "submenu active" : "submenu"}>
                             <NavLink to="/sidebar/inscrire" className={({ isActive }) => isActive ? "link active" : "link"}><span>Inscrire un participant</span></NavLink>
                         </div>
                     </li>
-                    <li>
-                        <NavLink to="/sidebar/message" className={({ isActive }) => isActive ? "link active" : "link"}>
-                            <span><MdOutlineMessage className='i' />Message</span>
-                        </NavLink>
-                    </li>
-                    <li>
-                        <NavLink to="/sidebar/newsletter" className={({ isActive }) => isActive ? "link active" : "link"}>
-                            <span><SiGmail className='i' />Newsletter</span>
-                        </NavLink>
-                    </li>
-                    <li>
-                        <NavLink to="/sidebar/password" className={({ isActive }) => isActive ? "link active" : "link"}>
-                            <span><MdSecurity className='i' />Sécurité</span>
-                        </NavLink>
-                    </li>
+                    {isSuperAdmin && (
+                        <>
+                            <li>
+                                <NavLink to="/sidebar/message" className={({ isActive }) => isActive ? "link active" : "link"}>
+                                    <span><MdOutlineMessage className='i' />Message</span>
+                                </NavLink>
+                            </li>
+                            <li>
+                                <NavLink to="/sidebar/newsletter" className={({ isActive }) => isActive ? "link active" : "link"}>
+                                    <span><SiGmail className='i' />Newsletter</span>
+                                </NavLink>
+                            </li>
+                            <li>
+                                <NavLink to="/sidebar/password" className={({ isActive }) => isActive ? "link active" : "link"}>
+                                    <span><MdSecurity className='i' />Sécurité</span>
+                                </NavLink>
+                            </li>
+                        </>
+                    )}
                     <li>
                         <NavLink to="/sidebar/logout" className={({ isActive }) => isActive ? "link active" : "link"}>
                             <span><MdLogout className='i' />Deconnexion</span>

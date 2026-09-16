@@ -163,7 +163,14 @@ export default function InscriptionNonFinalisee() {
           .filter(items => !items.some(i => i.status === "paid"))
           .map(items => items[0]); // garder un seul
 
-        setInscription(result);
+        
+        if (JSON.parse(localStorage.getItem("admin#token")).role == "super-admin") {
+          setInscription(result)
+        } else {
+          setInscription(
+            result.filter((i) => i.payment_type === "physique")
+          );
+        }
       }).catch((err) => {
         console.log(err)
       })
