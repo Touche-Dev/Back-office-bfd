@@ -127,7 +127,10 @@ app.post("/inscrire", (req, res) => {
             if (existing.length > 0) {
                 return res.json({ message: "ERREUR: Cette adresse e-mail possède déjà une inscription validée ou traitée pour les Bangui Financial Days 2026." });
             }
-
+            const typeParticipantValue =
+                payload.type_participant === "Pass accès complet"
+                    ? "manuelle"
+                    : payload.type_participant;
             const insertSql = `
   INSERT INTO event_registrations
     (token, nom_prenom, date_naissance, nationalite, code_postal, ville, tel, email,
@@ -158,7 +161,7 @@ app.post("/inscrire", (req, res) => {
                 3,                            // days
                 "75000",                      // prix
                 "FCFA",                        // devise
-                "paid",                     // status
+                typeParticipantValue,    // status
                 0,                              // email_sent
             ]).then(([result]) => {
                 if (result.affectedRows > 0) {

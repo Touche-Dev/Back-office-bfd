@@ -147,11 +147,15 @@ export default function InscriptionReussie() {
     axios.get("https://back-office-bfd.vercel.app/inscription")
       .then((res) => {
         //setInscription(res.data.filter((item) => item.status == "paid"))
+        const paidStatuses = ["paid", "manuelle", "organisateur", "sponsor", "partenaire"];
+
         if (JSON.parse(localStorage.getItem("admin#token")).role == "super-admin") {
-          setInscription(res.data.filter((item) => item.status == "paid"))
+          setInscription(res.data.filter((item) => paidStatuses.includes(item.status)));
         } else {
           setInscription(
-            res.data.filter((item) => item.status == "paid").filter((i) => i.payment_type === "physique")
+            res.data
+              .filter((item) => paidStatuses.includes(item.status))
+              .filter((i) => i.payment_type === "physique")
           );
         }
       }).catch((err) => {
@@ -245,7 +249,22 @@ export default function InscriptionReussie() {
                 <div className='subjects'><h4>Sujets d'interet :</h4><span>{overlayItem.sujets_interet}</span></div>
                 <div><h4>B2B :</h4><span>{overlayItem.b2b}</span></div>
                 <div><h4>Besoin spécifique :</h4><span>{overlayItem.besoin_specifique == "" ? overlayItem.besoin_specifique : "-"}</span></div>
-                <div className='status'><h4>Status :</h4><span className={overlayItem.status == "paid" ? "paid" : overlayItem.status == "expired" ? "expired" : overlayItem.status == "pending" ? "pending" : ""}>{overlayItem.status}</span></div>
+                <div className='status'>
+                  <h4>Status :</h4>
+                  <span
+                    className={
+                      ["paid", "manuelle", "organisateur", "sponsor", "Partenaire"].includes(overlayItem.status)
+                        ? "paid"
+                        : overlayItem.status == "expired"
+                          ? "expired"
+                          : overlayItem.status == "pending"
+                            ? "pending"
+                            : "expired"
+                    }
+                  >
+                    {overlayItem.status}
+                  </span>
+                </div>
                 <div><h4>Type de paiement:</h4><span>{overlayItem.payment_type != null ? overlayItem.payment_type : "-"}</span></div>
                 {overlayItem.payment_id != null ? <div><h4>ID de paiement:</h4><span>{overlayItem.payment_id}</span></div> : ""}
                 {overlayItem.payment_proof_path != null ? <div className='capture'><h4>Capture d'ecran:</h4><img src={`https://banguifinancialdays.org/${overlayItem.payment_proof_path}`} alt="" onClick={(e) => window.open(e.currentTarget.src, "_blank")} /></div> : ""}
@@ -334,7 +353,21 @@ export default function InscriptionReussie() {
                   <td className='pays'>{item.nationalite}</td>
                   <td className='email'>{item.email}</td>
                   <td className='institution'>{item.organisation}</td>
-                  <td className='statustd'><span className={item.status == "paid" ? "paid" : item.status == "expired" ? "expired" : item.status == "pending" ? "pending" : "expired"}>{item.status}</span></td>
+                  <td className='statustd'>
+                    <span
+                      className={
+                        ["paid", "manuelle", "organisateur", "sponsor", "partenaire"].includes(item.status)
+                          ? "paid"
+                          : item.status == "expired"
+                            ? "expired"
+                            : item.status == "pending"
+                              ? "pending"
+                              : "expired"
+                      }
+                    >
+                      {item.status}
+                    </span>
+                  </td>
                 </tr>
               )
             })}

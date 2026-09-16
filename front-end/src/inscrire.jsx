@@ -206,8 +206,10 @@ export default function InscriptionForm({ onSubmit, passId }) {
     const errors = [];
 
     const requiredFields = {
+      type_participant: "Type de participant",
       nom_prenom: "Nom et prénom",
       email: "Adresse e-mail",
+      org: "Organisation / Entreprise",
       fonction: "Fonction / Poste occupé",
     };
 
@@ -276,7 +278,7 @@ export default function InscriptionForm({ onSubmit, passId }) {
       if (onSubmit) {
         await onSubmit(payload);
       } else {
-        const response = await axios.post("http://localhost:3006/inscrire", { payload });
+        const response = await axios.post("https://back-office-bfd.vercel.app/inscrire", { payload });
 
         if (response.data.message == "Inscription enregistrée avec succès.") {
 
@@ -378,7 +380,7 @@ export default function InscriptionForm({ onSubmit, passId }) {
       <h3>1. Informations personnelles</h3>
       <div className="insc-input">
         <div>
-          <label htmlFor="type_participant">Type de participant</label>
+          <label htmlFor="type_participant">Type de participant<span style={{ color: "red" }}> *</span></label>
           <select
             id="type_participant"
             name="type_participant"
@@ -393,7 +395,7 @@ export default function InscriptionForm({ onSubmit, passId }) {
           </select>
         </div>
         <div>
-          <label htmlFor="nom_prenom">Nom et prénom</label>
+          <label htmlFor="nom_prenom">Nom et prénom <span style={{ color: "red" }}>*</span></label>
           <input
             type="text"
             name="nom_prenom"
@@ -468,7 +470,7 @@ export default function InscriptionForm({ onSubmit, passId }) {
           )}
         </div>
         <div>
-          <label htmlFor="email">Adresse e-mail</label>
+          <label htmlFor="email">Adresse e-mail<span style={{ color: "red" }}> *</span></label>
           <input
             name="email"
             type="email"
@@ -483,7 +485,7 @@ export default function InscriptionForm({ onSubmit, passId }) {
       <h3>2. Informations professionnelles</h3>
       <div className="insc-input">
         <div>
-          <label htmlFor="org">Organisation / Entreprise</label>
+          <label htmlFor="org">Organisation / Entreprise <span style={{ color: "red" }}>*</span></label>
           <input
             name="org"
             type="text"
@@ -494,7 +496,7 @@ export default function InscriptionForm({ onSubmit, passId }) {
           />
         </div>
         <div>
-          <label htmlFor="fonction">Fonction / Poste occupé</label>
+          <label htmlFor="fonction">Fonction / Poste occupé <span style={{ color: "red" }}>*</span></label>
           <input
             name="fonction"
             type="text"
@@ -607,7 +609,7 @@ export default function InscriptionForm({ onSubmit, passId }) {
         />
       </div>
 
-      <h3>5. Engagement et consentement</h3>
+      <h3>5. Engagement et consentement <span style={{ color: "red" }}> *</span></h3>
       <div className="insc-inputcoche">
         <div>
           <input
