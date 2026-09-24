@@ -69,6 +69,7 @@ const INITIAL_STATE = {
   ville: "",
   tel: "",
   email: "",
+  email_copie: "",
   org: "",
   fonction: "",
   secteur: "",
@@ -209,8 +210,7 @@ export default function InscriptionForm({ onSubmit, passId }) {
       type_participant: "Type de participant",
       nom_prenom: "Nom et prénom",
       email: "Adresse e-mail",
-      org: "Organisation / Entreprise",
-      fonction: "Fonction / Poste occupé",
+      org: "Organisation / Entreprise"
     };
 
     Object.entries(requiredFields).forEach(([key, label]) => {
@@ -261,6 +261,7 @@ export default function InscriptionForm({ onSubmit, passId }) {
       ville: form.ville.trim(),
       tel: normalizeTel(rawTel),
       email: form.email.trim(),
+      email_copie: form.email_copie.trim(),
       org: form.org.trim(),
       fonction: form.fonction.trim(),
       secteur: form.secteur.trim(),
@@ -278,7 +279,8 @@ export default function InscriptionForm({ onSubmit, passId }) {
       if (onSubmit) {
         await onSubmit(payload);
       } else {
-        const response = await axios.post("https://back-office-bfd.vercel.app/inscrire", { payload });
+        const response = await axios.post("http://localhost:3006/inscrire", { payload })
+        //const response = await axios.post("https://back-office-bfd.vercel.app/inscrire", { payload });
 
         if (response.data.message == "Inscription enregistrée avec succès.") {
 
@@ -480,6 +482,17 @@ export default function InscriptionForm({ onSubmit, passId }) {
             placeholder="Adresse e-mail"
           />
         </div>
+        <div>
+          <label htmlFor="email_copie">Adresse e-mail en copie</label>
+          <input
+            name="email_copie"
+            type="email"
+            id="email_copie"
+            value={form.email_copie}
+            onChange={handleChange}
+            placeholder="Adresse e-mail en copie"
+          />
+        </div>
       </div>
 
       <h3>2. Informations professionnelles</h3>
@@ -496,7 +509,7 @@ export default function InscriptionForm({ onSubmit, passId }) {
           />
         </div>
         <div>
-          <label htmlFor="fonction">Fonction / Poste occupé <span style={{ color: "red" }}>*</span></label>
+          <label htmlFor="fonction">Fonction / Poste occupé </label>
           <input
             name="fonction"
             type="text"

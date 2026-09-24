@@ -10,6 +10,8 @@ import { useNavigate } from 'react-router-dom';
 import { FaUsers } from "react-icons/fa";
 import { BsFiletypePdf } from "react-icons/bs";
 
+// Statuts considérés comme "payés" / validés
+const PAID_STATUSES = ["paid", "manuelle", "organisateur", "sponsor", "Partenaire"];
 
 export default function Dashboard() {
   const navigation = useNavigate()
@@ -64,7 +66,7 @@ export default function Dashboard() {
           <div className="cards">
             <div className="card reussi" onClick={() => navigation("/sidebar/inscription-reussie")}>
               <div className="nbr">
-                <span> {(inscriptionToday.filter((item) => item.status == "paid")).length} </span>
+                <span> {(inscriptionToday.filter((item) => PAID_STATUSES.includes(item.status))).length} </span>
                 <h5>Inscriptions réussie</h5>
               </div>
               <div className="icon">
@@ -76,7 +78,6 @@ export default function Dashboard() {
                 <span>{
                   (() => {
                     const allowedStatuses = ["pending", "canceled", "expired", "failed"];
-                    const excludedStatus = "paid";
 
                     // regrouper les items par email
                     const emailGroups = {};
@@ -91,7 +92,7 @@ export default function Dashboard() {
                     // filtrer les emails
                     const result = Object.values(emailGroups)
                       .filter(items =>
-                        !items.some(i => i.status === excludedStatus) &&
+                        !items.some(i => PAID_STATUSES.includes(i.status)) &&
                         items.some(i => allowedStatuses.includes(i.status))
                       )
                       .map(items => items[0].email); // garder un seul email
@@ -108,10 +109,9 @@ export default function Dashboard() {
 
             <div className="card total" onClick={() => navigation("/sidebar/inscription")}>
               <div className="nbr">
-                <span>{(inscriptionToday.filter((item) => item.status == "paid")).length +
+                <span>{(inscriptionToday.filter((item) => PAID_STATUSES.includes(item.status))).length +
                   (() => {
                     const allowedStatuses = ["pending", "canceled", "expired", "failed"];
-                    const excludedStatus = "paid";
 
                     // regrouper les items par email
                     const emailGroups = {};
@@ -126,7 +126,7 @@ export default function Dashboard() {
                     // filtrer les emails
                     const result = Object.values(emailGroups)
                       .filter(items =>
-                        !items.some(i => i.status === excludedStatus) &&
+                        !items.some(i => PAID_STATUSES.includes(i.status)) &&
                         items.some(i => allowedStatuses.includes(i.status))
                       )
                       .map(items => items[0].email); // garder un seul email
@@ -146,7 +146,7 @@ export default function Dashboard() {
           <div className="cards">
             <div className="card reussi" onClick={() => navigation("/sidebar/inscription-reussie")}>
               <div className="nbr">
-                <span> {(inscription.filter((item) => item.status == "paid")).length} </span>
+                <span> {(inscription.filter((item) => PAID_STATUSES.includes(item.status))).length} </span>
                 <h5>Inscriptions réussies</h5>
               </div>
               <div className="icon">
@@ -158,7 +158,6 @@ export default function Dashboard() {
                 <span>{
                   (() => {
                     const allowedStatuses = ["pending", "canceled", "expired", "failed"];
-                    const excludedStatus = "paid";
 
                     // regrouper les items par email
                     const emailGroups = {};
@@ -173,7 +172,7 @@ export default function Dashboard() {
                     // filtrer les emails
                     const result = Object.values(emailGroups)
                       .filter(items =>
-                        !items.some(i => i.status === excludedStatus) &&
+                        !items.some(i => PAID_STATUSES.includes(i.status)) &&
                         items.some(i => allowedStatuses.includes(i.status))
                       )
                       .map(items => items[0].email); // garder un seul email
@@ -189,10 +188,9 @@ export default function Dashboard() {
             </div>
             <div className="card total" onClick={() => navigation("/sidebar/inscription")}>
               <div className="nbr">
-                <span>{(inscription.filter((item) => item.status == "paid")).length +
+                <span>{(inscription.filter((item) => PAID_STATUSES.includes(item.status))).length +
                   (() => {
                     const allowedStatuses = ["pending", "canceled", "expired", "failed"];
-                    const excludedStatus = "paid";
 
                     // regrouper les items par email
                     const emailGroups = {};
@@ -207,7 +205,7 @@ export default function Dashboard() {
                     // filtrer les emails
                     const result = Object.values(emailGroups)
                       .filter(items =>
-                        !items.some(i => i.status === excludedStatus) &&
+                        !items.some(i => PAID_STATUSES.includes(i.status)) &&
                         items.some(i => allowedStatuses.includes(i.status))
                       )
                       .map(items => items[0].email);

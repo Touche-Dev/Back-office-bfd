@@ -11,6 +11,9 @@ import { FaTimes } from "react-icons/fa";
 import Swal from "sweetalert2";
 import { FaCreditCard, FaMobileAlt, FaHandHoldingUsd } from "react-icons/fa";
 
+// Statuts considérés comme "finalisés" / déjà validés
+const PAID_STATUSES = ["paid", "manuelle", "organisateur", "sponsor", "Partenaire"];
+
 export default function InscriptionNonFinalisee() {
   const [inscription, setInscription] = useState([])
   const [relance, setRelance] = useState([])
@@ -160,7 +163,7 @@ export default function InscriptionNonFinalisee() {
         });
 
         const result = Object.values(emailStatuses)
-          .filter(items => !items.some(i => i.status === "paid"))
+          .filter(items => !items.some(i => PAID_STATUSES.includes(i.status)))
           .map(items => items[0]); // garder un seul
 
 
@@ -278,7 +281,7 @@ export default function InscriptionNonFinalisee() {
                   <h4>Status :</h4>
                   <span
                     className={
-                      ["paid", "manuelle", "organisateur", "sponsor", "Partenaire"].includes(overlayItem.status)
+                      PAID_STATUSES.includes(overlayItem.status)
                         ? "paid"
                         : overlayItem.status == "expired"
                           ? "expired"
@@ -324,14 +327,14 @@ export default function InscriptionNonFinalisee() {
               <div className="btn-overlay">
                 {(overlayItem.payment_proof_path != null &&
                   overlayItem.payment_id != null &&
-                  overlayItem.status != "paid" &&
+                  !PAID_STATUSES.includes(overlayItem.status) &&
                   overlayItem.status != "rejected" &&
-                  !inscription.some((i) => i.email === overlayItem.email && i.status === "paid")) ? (
+                  !inscription.some((i) => i.email === overlayItem.email && PAID_STATUSES.includes(i.status))) ? (
                   <div className='validation'><div className="validation-buttons">
                     <button
                       type="button"
                       className="btn-validation"
-                      disabled={overlayItem.status == "paid" ? true : false}
+                      disabled={PAID_STATUSES.includes(overlayItem.status) ? true : false}
                       onClick={() => {
                         Swal.fire({
                           title: "Valider le paiement ?",
@@ -585,7 +588,7 @@ export default function InscriptionNonFinalisee() {
                   </div>
                 ) : ""}
                 {!inscription.some(
-                  (item) => item.email === overlayItem.email && item.status === "paid"
+                  (item) => item.email === overlayItem.email && PAID_STATUSES.includes(item.status)
                 ) && overlayItem.payment_type !== "mobile_money" ? (
                   <div className='validation'>
                     <div className="validation-buttons">
@@ -735,7 +738,7 @@ export default function InscriptionNonFinalisee() {
                   <td className='statustd'>
                     <span
                       className={
-                        ["paid", "manuelle", "organisateur", "sponsor", "partenaire"].includes(item.status)
+                        PAID_STATUSES.includes(item.status)
                           ? "paid"
                           : item.status == "expired"
                             ? "expired"
@@ -757,4 +760,3 @@ export default function InscriptionNonFinalisee() {
     </div>
   )
 }
-

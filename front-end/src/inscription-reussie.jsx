@@ -147,7 +147,7 @@ export default function InscriptionReussie() {
     axios.get("https://back-office-bfd.vercel.app/inscription")
       .then((res) => {
         //setInscription(res.data.filter((item) => item.status == "paid"))
-        const paidStatuses = ["paid", "manuelle", "organisateur", "sponsor", "partenaire"];
+        const paidStatuses = ["paid", "manuelle", "organisateur", "sponsor", "Partenaire"];
 
         if (JSON.parse(localStorage.getItem("admin#token")).role == "super-admin") {
           setInscription(res.data.filter((item) => paidStatuses.includes(item.status)));
@@ -356,7 +356,7 @@ export default function InscriptionReussie() {
                   <td className='statustd'>
                     <span
                       className={
-                        ["paid", "manuelle", "organisateur", "sponsor", "partenaire"].includes(item.status)
+                        ["paid", "manuelle", "organisateur", "sponsor", "Partenaire"].includes(item.status)
                           ? "paid"
                           : item.status == "expired"
                             ? "expired"

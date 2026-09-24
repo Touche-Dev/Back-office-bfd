@@ -730,7 +730,7 @@ export default function Inscription() {
                   <td className='statustd'>
                     <span
                       className={
-                        ["paid", "manuelle", "organisateur", "sponsor", "partenaire"].includes(item.status)
+                        ["paid", "manuelle", "organisateur", "sponsor", "Partenaire"].includes(item.status)
                           ? "paid"
                           : item.status == "expired"
                             ? "expired"

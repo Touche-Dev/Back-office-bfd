@@ -163,8 +163,22 @@ app.post("/inscrire", (req, res) => {
                 "FCFA",                        // devise
                 typeParticipantValue,    // status
                 0,                              // email_sent
-            ]).then(([result]) => {
+            ]).then(async ([result]) => {
                 if (result.affectedRows > 0) {
+
+                    const emailCopie = typeof payload.email_copie === "string" ? payload.email_copie.trim() : "";
+
+                    if (emailCopie) {
+                        try {
+                            await db.query(
+                                "INSERT INTO email_copie (token, email_copie) VALUES (?, ?)",
+                                [token, emailCopie]
+                            );
+                        } catch (err) {
+                            console.error("Erreur insertion email_copie :", err);
+                        }
+                    }
+
                     res.json({ message: "Inscription enregistrée avec succès.", token });
                 } else {
                     res.json({ message: "ERREUR: Une erreur est survenue lors de l'enregistrement." });
