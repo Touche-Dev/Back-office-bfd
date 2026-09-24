@@ -279,8 +279,8 @@ export default function InscriptionForm({ onSubmit, passId }) {
       if (onSubmit) {
         await onSubmit(payload);
       } else {
-        const response = await axios.post("http://localhost:3006/inscrire", { payload })
-        //const response = await axios.post("https://back-office-bfd.vercel.app/inscrire", { payload });
+        //const response = await axios.post("http://localhost:3006/inscrire", { payload })
+        const response = await axios.post("https://back-office-bfd.vercel.app/inscrire", { payload });
 
         if (response.data.message == "Inscription enregistrée avec succès.") {
 
