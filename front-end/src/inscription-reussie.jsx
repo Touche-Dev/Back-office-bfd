@@ -9,13 +9,17 @@ import { useOutletContext } from "react-router-dom";
 import { FaCheck } from "react-icons/fa6";
 import { FaTimes } from "react-icons/fa";
 import Swal from "sweetalert2";
-import { FaCreditCard, FaMobileAlt, FaHandHoldingUsd } from "react-icons/fa";
+import { FaCreditCard, FaMobileAlt, FaHandHoldingUsd, FaIdBadge } from "react-icons/fa";
 
 export default function InscriptionReussie() {
   const [inscription, setInscription] = useState([])
   const [overlay, setOverlay] = useState(false)
   const [overlayItem, setOverlayItem] = useState({})
   const context = useOutletContext();
+  const [badge, setBadge] = useState([])
+
+
+  const PAID_STATUSES = ["paid", "manuelle", "organisateur", "sponsor", "partenaire"];
 
   const { searchValue } = useOutletContext();
   useEffect(() => {
@@ -39,6 +43,18 @@ export default function InscriptionReussie() {
     const originalTable = document.getElementById("table");
     const tableClone = originalTable.cloneNode(true);
 
+    // En-tête de la dernière colonne : remplacer l'icône par du texte
+    const lastTh = tableClone.querySelector("thead tr th:last-child");
+    if (lastTh) lastTh.textContent = "Badge";
+
+    // Lignes : remplacer la checkbox par Oui / Non
+    const originalRows = originalTable.querySelectorAll("tbody tr");
+    tableClone.querySelectorAll("tbody tr").forEach((tr, i) => {
+      const lastTd = tr.querySelector("td:last-child");
+      const checkbox = originalRows[i].querySelector('input[type="checkbox"]');
+      if (lastTd) lastTd.textContent = checkbox?.checked ? "Oui" : "Non";
+    });
+
     tableClone.querySelectorAll("*").forEach(el => el.removeAttribute("class"));
     tableClone.removeAttribute("id");
 
@@ -49,12 +65,10 @@ export default function InscriptionReussie() {
         textColor: [255, 255, 255],
         fontStyle: "bold"
       },
-      styles: {
-        fontSize: 8
-      }
+      styles: { fontSize: 8 }
     });
 
-    pdf.save("Inscriptions-Réussies.pdf");
+    pdf.save("Inscriptions.pdf");
   }
 
   function ExportCsv() {
@@ -147,7 +161,7 @@ export default function InscriptionReussie() {
     axios.get("https://back-office-bfd.vercel.app/inscription")
       .then((res) => {
         //setInscription(res.data.filter((item) => item.status == "paid"))
-        const paidStatuses = ["paid", "manuelle", "organisateur", "sponsor", "Partenaire"];
+        const paidStatuses = ["paid", "manuelle", "organisateur", "sponsor", "partenaire"];
 
         if (JSON.parse(localStorage.getItem("admin#token")).role == "super-admin") {
           setInscription(res.data.filter((item) => paidStatuses.includes(item.status)));
@@ -162,6 +176,84 @@ export default function InscriptionReussie() {
         console.log(err)
       })
   }, []);
+
+
+  useEffect(() => {
+    axios.get("http://localhost:3006/badge")
+      .then((res) => {
+        setBadge(res.data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }, []);
+
+
+  const toggleBadge = (item) => {
+    const dejaFait = badge.some((b) => b.token === item.token);
+    if (dejaFait) return;
+
+    Swal.fire({
+      title: "Confirmer le badge ?",
+      text: `Confirmez-vous que le badge de ${item.nom_prenom} est fait ? Cette action ne pourra pas être annulée.`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Continuer",
+      cancelButtonText: "Annuler",
+      background: "#123779",
+      customClass: {
+        confirmButton: "my-confirm-btn",
+        cancelButton: "my-cancel-btn",
+        title: "swal-title",
+        htmlContainer: "swal-text",
+      },
+      buttonsStyling: false,
+    }).then((result) => {
+      // Annulé : on ne fait rien, la case reste décochée
+      if (!result.isConfirmed) return;
+
+      // Mise à jour immédiate de l'interface
+      setBadge((prev) => [...prev, { token: item.token }]);
+
+      axios
+        .post("http://localhost:3006/majbadge", { token: item.token })
+        .then(() => {
+          Swal.fire({
+            title: "Badge enregistré !",
+            text: "Le badge de cet inscrit est marqué comme fait.",
+            icon: "success",
+            confirmButtonText: "OK",
+            background: "#123779",
+            customClass: {
+              confirmButton: "my-confirm-btn",
+              title: "swal-title",
+              htmlContainer: "swal-text",
+            },
+            buttonsStyling: false,
+          });
+        })
+        .catch((err) => {
+          console.log(err);
+
+          // En cas d'erreur, on annule
+          setBadge((prev) => prev.filter((b) => b.token !== item.token));
+
+          Swal.fire({
+            title: "Erreur",
+            text: "Impossible d'enregistrer le badge.",
+            icon: "error",
+            confirmButtonText: "OK",
+            background: "#123779",
+            customClass: {
+              confirmButton: "my-confirm-btn",
+              title: "swal-title",
+              htmlContainer: "swal-text",
+            },
+            buttonsStyling: false,
+          });
+        });
+    });
+  };
 
 
 
@@ -253,7 +345,7 @@ export default function InscriptionReussie() {
                   <h4>Status :</h4>
                   <span
                     className={
-                      ["paid", "manuelle", "organisateur", "sponsor", "Partenaire"].includes(overlayItem.status)
+                      ["paid", "manuelle", "organisateur", "sponsor", "partenaire"].includes(overlayItem.status)
                         ? "paid"
                         : overlayItem.status == "expired"
                           ? "expired"
@@ -313,6 +405,7 @@ export default function InscriptionReussie() {
               <th className='col4'>Email</th>
               <th className='col6'>Organisation</th>
               <th className='col7'>status</th>
+              <th className='col1'><FaIdBadge /></th>
             </tr>
           </thead>
           <tbody>
@@ -356,7 +449,7 @@ export default function InscriptionReussie() {
                   <td className='statustd'>
                     <span
                       className={
-                        ["paid", "manuelle", "organisateur", "sponsor", "Partenaire"].includes(item.status)
+                        ["paid", "manuelle", "organisateur", "sponsor", "partenaire"].includes(item.status)
                           ? "paid"
                           : item.status == "expired"
                             ? "expired"
@@ -367,6 +460,16 @@ export default function InscriptionReussie() {
                     >
                       {item.status}
                     </span>
+                  </td>
+                  <td onClick={(e) => e.stopPropagation()}>
+                    {PAID_STATUSES.includes(item.status) && (
+                      <input
+                        type="checkbox"
+                        checked={badge.some((b) => b.token === item.token)}
+                        onChange={() => toggleBadge(item)}
+                        style={{ cursor: "pointer" }}
+                      />
+                    )}
                   </td>
                 </tr>
               )

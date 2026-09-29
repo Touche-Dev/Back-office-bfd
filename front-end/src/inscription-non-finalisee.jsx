@@ -12,7 +12,7 @@ import Swal from "sweetalert2";
 import { FaCreditCard, FaMobileAlt, FaHandHoldingUsd } from "react-icons/fa";
 
 // Statuts considérés comme "finalisés" / déjà validés
-const PAID_STATUSES = ["paid", "manuelle", "organisateur", "sponsor", "Partenaire"];
+const PAID_STATUSES = ["paid", "manuelle", "organisateur", "sponsor", "partenaire"];
 
 export default function InscriptionNonFinalisee() {
   const [inscription, setInscription] = useState([])
@@ -588,8 +588,14 @@ export default function InscriptionNonFinalisee() {
                   </div>
                 ) : ""}
                 {!inscription.some(
-                  (item) => item.email === overlayItem.email && PAID_STATUSES.includes(item.status)
-                ) && overlayItem.payment_type !== "mobile_money" ? (
+                  (item) =>
+                    item.email === overlayItem.email &&
+                    (
+                      item.payment_type === "mobile_money"
+                        ? item.status === "paid"
+                        : PAID_STATUSES.includes(item.status)
+                    )
+                ) ? (
                   <div className='validation'>
                     <div className="validation-buttons">
                       <button

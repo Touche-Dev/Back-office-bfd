@@ -7,16 +7,20 @@ import { FaUserCheck } from "react-icons/fa";
 import { FaUserClock } from "react-icons/fa";
 import { useOutletContext } from "react-router-dom";
 import { FaCheck } from "react-icons/fa6";
-import { FaTimes } from "react-icons/fa";
+import { FaTimes, FaIdBadge } from "react-icons/fa";
 import Swal from "sweetalert2";
 import { FaCreditCard, FaMobileAlt, FaHandHoldingUsd } from "react-icons/fa";
 
 export default function Inscription() {
   const [inscription, setInscription] = useState([])
+  const [badge, setBadge] = useState([])
   const [relance, setRelance] = useState([])
   const [overlay, setOverlay] = useState(false)
   const [overlayItem, setOverlayItem] = useState({})
   const context = useOutletContext();
+
+  // Statuts considérés comme "finalisés" / déjà validés
+  const PAID_STATUSES = ["paid", "manuelle", "organisateur", "sponsor", "partenaire"];
 
   const { searchValue } = useOutletContext();
   useEffect(() => {
@@ -33,7 +37,7 @@ export default function Inscription() {
 
 
 
-  function ExportPdf() {
+  /*function ExportPdf() {
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF("l", "mm", "a4");
 
@@ -56,8 +60,43 @@ export default function Inscription() {
     });
 
     pdf.save("Inscriptions.pdf");
-  }
+  }*/
 
+
+  function ExportPdf() {
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF("l", "mm", "a4");
+
+    const originalTable = document.getElementById("table");
+    const tableClone = originalTable.cloneNode(true);
+
+    // En-tête de la dernière colonne : remplacer l'icône par du texte
+    const lastTh = tableClone.querySelector("thead tr th:last-child");
+    if (lastTh) lastTh.textContent = "Badge";
+
+    // Lignes : remplacer la checkbox par Oui / Non
+    const originalRows = originalTable.querySelectorAll("tbody tr");
+    tableClone.querySelectorAll("tbody tr").forEach((tr, i) => {
+      const lastTd = tr.querySelector("td:last-child");
+      const checkbox = originalRows[i].querySelector('input[type="checkbox"]');
+      if (lastTd) lastTd.textContent = checkbox?.checked ? "Oui" : "Non";
+    });
+
+    tableClone.querySelectorAll("*").forEach(el => el.removeAttribute("class"));
+    tableClone.removeAttribute("id");
+
+    pdf.autoTable({
+      html: tableClone,
+      headStyles: {
+        fillColor: [18, 55, 121],
+        textColor: [255, 255, 255],
+        fontStyle: "bold"
+      },
+      styles: { fontSize: 8 }
+    });
+
+    pdf.save("Inscriptions.pdf");
+  }
   function ExportCsv() {
     const cleanData = (data, isPhone = false) => {
       if (!data && data !== 0) return "";
@@ -181,6 +220,85 @@ export default function Inscription() {
   }, []);
 
 
+  useEffect(() => {
+    axios.get("http://localhost:3006/badge")
+      .then((res) => {
+        setBadge(res.data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }, []);
+
+
+  const toggleBadge = (item) => {
+    const dejaFait = badge.some((b) => b.token === item.token);
+    if (dejaFait) return;
+
+    Swal.fire({
+      title: "Confirmer le badge ?",
+      text: `Confirmez-vous que le badge de ${item.nom_prenom} est fait ? Cette action ne pourra pas être annulée.`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Continuer",
+      cancelButtonText: "Annuler",
+      background: "#123779",
+      customClass: {
+        confirmButton: "my-confirm-btn",
+        cancelButton: "my-cancel-btn",
+        title: "swal-title",
+        htmlContainer: "swal-text",
+      },
+      buttonsStyling: false,
+    }).then((result) => {
+      // Annulé : on ne fait rien, la case reste décochée
+      if (!result.isConfirmed) return;
+
+      // Mise à jour immédiate de l'interface
+      setBadge((prev) => [...prev, { token: item.token }]);
+
+      axios
+        .post("http://localhost:3006/majbadge", { token: item.token })
+        .then(() => {
+          Swal.fire({
+            title: "Badge enregistré !",
+            text: "Le badge de cet inscrit est marqué comme fait.",
+            icon: "success",
+            confirmButtonText: "OK",
+            background: "#123779",
+            customClass: {
+              confirmButton: "my-confirm-btn",
+              title: "swal-title",
+              htmlContainer: "swal-text",
+            },
+            buttonsStyling: false,
+          });
+        })
+        .catch((err) => {
+          console.log(err);
+
+          // En cas d'erreur, on annule
+          setBadge((prev) => prev.filter((b) => b.token !== item.token));
+
+          Swal.fire({
+            title: "Erreur",
+            text: "Impossible d'enregistrer le badge.",
+            icon: "error",
+            confirmButtonText: "OK",
+            background: "#123779",
+            customClass: {
+              confirmButton: "my-confirm-btn",
+              title: "swal-title",
+              htmlContainer: "swal-text",
+            },
+            buttonsStyling: false,
+          });
+        });
+    });
+  };
+
+
+
 
   return (
     <div className='dashboard inscription'>
@@ -270,7 +388,7 @@ export default function Inscription() {
                   <h4>Status :</h4>
                   <span
                     className={
-                      ["paid", "manuelle", "organisateur", "sponsor", "Partenaire"].includes(overlayItem.status)
+                      ["paid", "manuelle", "organisateur", "sponsor", "partenaire"].includes(overlayItem.status)
                         ? "paid"
                         : overlayItem.status == "expired"
                           ? "expired"
@@ -578,8 +696,14 @@ export default function Inscription() {
                   </div>
                 ) : ""}
                 {!inscription.some(
-                  (item) => item.email === overlayItem.email && item.status === "paid"
-                ) && overlayItem.payment_type !== "mobile_money" ? (
+                  (item) =>
+                    item.email === overlayItem.email &&
+                    (
+                      item.payment_type === "mobile_money"
+                        ? item.status === "paid"
+                        : PAID_STATUSES.includes(item.status)
+                    )
+                ) ? (
                   <div className='validation'>
                     <div className="validation-buttons">
                       <button
@@ -687,6 +811,7 @@ export default function Inscription() {
               <th className='col4'>Email</th>
               <th className='col6'>Organisation</th>
               <th className='col7'>status</th>
+              <th className='col1'><FaIdBadge /></th>
             </tr>
           </thead>
           <tbody>
@@ -730,7 +855,7 @@ export default function Inscription() {
                   <td className='statustd'>
                     <span
                       className={
-                        ["paid", "manuelle", "organisateur", "sponsor", "Partenaire"].includes(item.status)
+                        ["paid", "manuelle", "organisateur", "sponsor", "partenaire"].includes(item.status)
                           ? "paid"
                           : item.status == "expired"
                             ? "expired"
@@ -742,6 +867,18 @@ export default function Inscription() {
                       {item.status}
                     </span>
                   </td>
+
+                  <td onClick={(e) => e.stopPropagation()}>
+                    {PAID_STATUSES.includes(item.status) && (
+                      <input
+                        type="checkbox"
+                        checked={badge.some((b) => b.token === item.token)}
+                        onChange={() => toggleBadge(item)}
+                        style={{ cursor: "pointer" }}
+                      />
+                    )}
+                  </td>
+
                 </tr>
               )
             })}

@@ -11,7 +11,7 @@ import { FaUsers } from "react-icons/fa";
 import { BsFiletypePdf } from "react-icons/bs";
 
 // Statuts considérés comme "payés" / validés
-const PAID_STATUSES = ["paid", "manuelle", "organisateur", "sponsor", "Partenaire"];
+const PAID_STATUSES = ["paid", "manuelle", "organisateur", "sponsor", "partenaire"];
 
 export default function Dashboard() {
   const navigation = useNavigate()
