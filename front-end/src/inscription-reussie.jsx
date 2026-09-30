@@ -120,7 +120,8 @@ export default function InscriptionReussie() {
       "Date",
       "Badge effectué",
       "Badge retiré",
-      "Badge suscité"
+      "Badge sur site",
+      "Invitation dîner de gala"
     ];
 
     const rows = inscription.map((item, key) => [
@@ -171,7 +172,7 @@ export default function InscriptionReussie() {
     link.click();
   }
 
-  useEffect(() => {
+  /*useEffect(() => {
     axios.get("https://back-office-bfd.vercel.app/inscription")
       .then((res) => {
         //setInscription(res.data.filter((item) => item.status == "paid"))
@@ -184,6 +185,33 @@ export default function InscriptionReussie() {
             res.data
               .filter((item) => paidStatuses.includes(item.status))
               .filter((i) => i.payment_type === "physique")
+          );
+        }
+      }).catch((err) => {
+        console.log(err)
+      })
+  }, []);*/
+
+
+  useEffect(() => {
+    axios.get("https://back-office-bfd.vercel.app/inscription")
+      .then((res) => {
+        const paidStatuses = ["paid", "manuelle", "organisateur", "vip", "partenaire"];
+
+        const trier = (liste) =>
+          [...liste].sort((a, b) =>
+            (a.nom_prenom || "").localeCompare(b.nom_prenom || "", "fr", { sensitivity: "base" })
+          );
+
+        if (JSON.parse(localStorage.getItem("admin#token")).role == "super-admin") {
+          setInscription(trier(res.data.filter((item) => paidStatuses.includes(item.status))));
+        } else {
+          setInscription(
+            trier(
+              res.data
+                .filter((item) => paidStatuses.includes(item.status))
+                .filter((i) => i.payment_type === "physique")
+            )
           );
         }
       }).catch((err) => {
@@ -532,7 +560,7 @@ export default function InscriptionReussie() {
               ).map((item, key) => {
                 return (
                   <tr key={key} onClick={() => { setOverlay(true); setOverlayItem(inscription.filter((i) => i.id === item.id)[0]) }}>
-                    <td>{item.id}</td>
+                    <td>{key + 1}</td>
                     <td className='nom'> <div className="icon">{
                       item.payment_type === "mollie" ? (
                         <FaCreditCard className="i" />
