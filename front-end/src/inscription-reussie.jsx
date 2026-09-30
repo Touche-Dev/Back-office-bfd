@@ -172,7 +172,7 @@ export default function InscriptionReussie() {
     link.click();
   }
 
-  /*useEffect(() => {
+  useEffect(() => {
     axios.get("https://back-office-bfd.vercel.app/inscription")
       .then((res) => {
         //setInscription(res.data.filter((item) => item.status == "paid"))
@@ -190,10 +190,10 @@ export default function InscriptionReussie() {
       }).catch((err) => {
         console.log(err)
       })
-  }, []);*/
+  }, []);
 
 
-  useEffect(() => {
+  /*useEffect(() => {
     axios.get("https://back-office-bfd.vercel.app/inscription")
       .then((res) => {
         const paidStatuses = ["paid", "manuelle", "organisateur", "vip", "partenaire"];
@@ -217,7 +217,7 @@ export default function InscriptionReussie() {
       }).catch((err) => {
         console.log(err)
       })
-  }, []);
+  }, []);*/
 
 
   useEffect(() => {
@@ -560,7 +560,7 @@ export default function InscriptionReussie() {
               ).map((item, key) => {
                 return (
                   <tr key={key} onClick={() => { setOverlay(true); setOverlayItem(inscription.filter((i) => i.id === item.id)[0]) }}>
-                    <td>{key + 1}</td>
+                    <td>{item.id}</td>
                     <td className='nom'> <div className="icon">{
                       item.payment_type === "mollie" ? (
                         <FaCreditCard className="i" />
