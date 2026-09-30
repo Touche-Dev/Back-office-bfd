@@ -43,19 +43,20 @@ export default function InscriptionReussie() {
     const originalTable = document.getElementById("table");
     const tableClone = originalTable.cloneNode(true);
 
-    // En-têtes des 3 dernières colonnes
+    // En-têtes des 4 dernières colonnes
     const ths = tableClone.querySelectorAll("thead tr th");
-    ["Badge effectué", "Badge retiré", "Badge suscité"].forEach((txt, i) => {
-      const th = ths[ths.length - 3 + i];
+    const enTetes = ["Badge effectué", "Badge retiré", "Badge sur site", "Invitation dîner de gala"];
+    enTetes.forEach((txt, i) => {
+      const th = ths[ths.length - enTetes.length + i];
       if (th) th.textContent = txt;
     });
 
-    // Lignes : checkbox -> Oui / Non pour les 3 dernières colonnes
+    // Lignes : checkbox -> Oui / Non pour les 4 dernières colonnes
     const originalRows = originalTable.querySelectorAll("tbody tr");
     tableClone.querySelectorAll("tbody tr").forEach((tr, i) => {
       const tds = tr.querySelectorAll("td");
       const origTds = originalRows[i].querySelectorAll("td");
-      for (let j = tds.length - 3; j < tds.length; j++) {
+      for (let j = tds.length - enTetes.length; j < tds.length; j++) {
         const checkbox = origTds[j]?.querySelector('input[type="checkbox"]');
         tds[j].textContent = checkbox?.checked ? "Oui" : "Non";
       }
@@ -154,7 +155,8 @@ export default function InscriptionReussie() {
         : "",
       isDone(item, "effectue") ? "Oui" : "Non",
       isDone(item, "retire") ? "Oui" : "Non",
-      isDone(item, "suscite") ? "Oui" : "Non"
+      isDone(item, "suscite") ? "Oui" : "Non",
+      isDone(item, "gala") ? "Oui" : "Non"
     ]);
 
     let csvContent = [headers.join(";")];
@@ -209,7 +211,7 @@ export default function InscriptionReussie() {
       const existe = prev.some((b) => b.token === token);
       return existe
         ? prev.map((b) => (b.token === token ? { ...b, [champ]: valeur } : b))
-        : [...prev, { token, effectue: 0, retire: 0, suscite: 0, [champ]: valeur }];
+        : [...prev, { token, effectue: 0, retire: 0, suscite: 0, gala: 0, [champ]: valeur }];
     });
   };
 
@@ -313,25 +315,44 @@ export default function InscriptionReussie() {
       },
     });
 
-  // ---- Badge suscité ----
+  // ---- Badge sur site ----
   const toggleSuscite = (item) =>
     toggleBadge(item, "suscite", "majbadge-suscite", {
       valider: {
-        confirmTitle: "Confirmer le badge suscité ?",
-        confirmText: (i) => `Confirmez-vous le badge suscité pour ${i.nom_prenom} ?`,
-        successTitle: "Badge suscité enregistré !",
-        successText: "Le badge suscité de cet inscrit est enregistré.",
-        errorText: "Impossible d'enregistrer le badge suscité.",
+        confirmTitle: "Confirmer le badge sur site ?",
+        confirmText: (i) => `Confirmez-vous le badge sur site pour ${i.nom_prenom} ?`,
+        successTitle: "Badge sur site enregistré !",
+        successText: "Le badge sur site de cet inscrit est enregistré.",
+        errorText: "Impossible d'enregistrer le badge sur site.",
       },
       annuler: {
-        confirmTitle: "Annuler le badge suscité ?",
-        confirmText: (i) => `Voulez-vous vraiment annuler le badge suscité de ${i.nom_prenom} ?`,
-        successTitle: "Badge suscité annulé !",
-        successText: "Le badge suscité de cet inscrit n'est plus enregistré.",
-        errorText: "Impossible d'annuler le badge suscité.",
+        confirmTitle: "Annuler le badge sur site ?",
+        confirmText: (i) => `Voulez-vous vraiment annuler le badge sur site de ${i.nom_prenom} ?`,
+        successTitle: "Badge sur site annulé !",
+        successText: "Le badge sur site de cet inscrit n'est plus enregistré.",
+        errorText: "Impossible d'annuler le badge sur site.",
       },
     });
 
+
+  // ---- Invitation dîner de gala ----
+  const toggleGala = (item) =>
+    toggleBadge(item, "gala", "majbadge-gala", {
+      valider: {
+        confirmTitle: "Confirmer l'invitation ?",
+        confirmText: (i) => `Confirmez-vous que l'invitation au dîner de gala a été remise à ${i.nom_prenom} ?`,
+        successTitle: "Invitation enregistrée !",
+        successText: "L'invitation au dîner de gala est marquée comme remise.",
+        errorText: "Impossible d'enregistrer l'invitation.",
+      },
+      annuler: {
+        confirmTitle: "Annuler l'invitation ?",
+        confirmText: (i) => `Voulez-vous vraiment annuler l'invitation au dîner de gala de ${i.nom_prenom} ?`,
+        successTitle: "Invitation annulée !",
+        successText: "L'invitation au dîner de gala n'est plus marquée comme remise.",
+        errorText: "Impossible d'annuler l'invitation.",
+      },
+    });
 
 
   return (
@@ -484,7 +505,8 @@ export default function InscriptionReussie() {
                 <th className='col6'>Type participant</th>
                 <th className='col6'>Badge effectué</th>
                 <th className='col6'>Badge retiré</th>
-                <th className='col6'>Badge suscite</th>
+                <th className='col6'>Badge sur site</th>
+                <th className='col6'>Invitation dîner de gala</th>
               </tr>
             </thead>
             <tbody>
@@ -565,6 +587,16 @@ export default function InscriptionReussie() {
                           type="checkbox"
                           checked={isDone(item, "suscite")}
                           onChange={() => toggleSuscite(item)}
+                          style={{ cursor: "pointer" }}
+                        />
+                      )}
+                    </td>
+                    <td onClick={(e) => e.stopPropagation()}>
+                      {PAID_STATUSES.includes(item.status) && (
+                        <input
+                          type="checkbox"
+                          checked={isDone(item, "gala")}
+                          onChange={() => toggleGala(item)}
                           style={{ cursor: "pointer" }}
                         />
                       )}

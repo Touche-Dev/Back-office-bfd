@@ -291,3 +291,21 @@ app.post("/majbadge-suscite", (req, res) => {
             res.status(500).send("Erreur serveur");
         });
 });
+
+
+app.post("/majbadge-gala", (req, res) => {
+    const { token, value } = req.body;
+    if (!token) return res.status(400).send("Token manquant");
+    const val = value ? 1 : 0;
+
+    db.query(
+        `INSERT INTO badge (token, effectue, gala) VALUES (?, 0, ?)
+         ON DUPLICATE KEY UPDATE gala = ?`,
+        [token, val, val]
+    )
+        .then(() => res.send("Invitation gala enregistrée !"))
+        .catch(err => {
+            console.error("Erreur SQL :", err);
+            res.status(500).send("Erreur serveur");
+        });
+});
