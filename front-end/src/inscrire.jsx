@@ -392,7 +392,7 @@ export default function InscriptionForm({ onSubmit, passId }) {
             <option value="">Type de participant</option>
             <option value="Pass accès complet">Participant</option>
             <option value="organisateur">Organisateur</option>
-            <option value="sponsor">Sponsor</option>
+            <option value="vip">VIP</option>
             <option value="partenaire">Partenaire</option>
           </select>
         </div>

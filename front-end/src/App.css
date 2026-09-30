@@ -615,11 +615,32 @@ span.pending {
     color: #ff9f0d;
 }
 
+span.participant {
+    background-color: #123779;
+    color: white;
+}
+
+span.organisateur {
+    background-color: rgba(70, 178, 110, 1);
+    color: white;
+}
+
+
+span.partenaire {
+    background-color: black;
+    color: white;
+}
+
+span.vip {
+    background-color: #D4AF37;
+    color: white;
+}
+
 table td.nom .i {
     color: #123779;
     font-size: 18px;
 }
-
+/*
 .col1 {
     width: 5%;
 }
@@ -642,7 +663,7 @@ table td.nom .i {
 
 .col7 {
     width: 13%;
-}
+}*/
 
 tbody tr {
     border-bottom: 1px solid rgb(0, 0, 0, 0.1);
@@ -1899,7 +1920,7 @@ tbody tr:hover {
 }
 
 .swal2-textarea::placeholder {
-    color: rgb(255, 255, 255,0.5) !important;
+    color: rgb(255, 255, 255, 0.5) !important;
     font-size: 16px !important;
     font-style: normal !important;
     font-weight: 400 !important;
@@ -1910,4 +1931,44 @@ tbody tr:hover {
 .swal-textarea:focus {
     outline: none !important;
     box-shadow: 0 0 0 2px #ffffff55 !important;
+}
+
+
+
+
+/* Conteneur scrollable */
+.table-scroll {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Le tableau prend la largeur de son contenu, mais jamais moins que 100% */
+.table-scroll table {
+    
+}
+
+
+
+/* Largeurs minimales par colonne (remplacent les % de .colX) */
+.table-scroll th.col1 { width: 60px; }
+.table-scroll th.col2 { width: 320px; }
+.table-scroll th.col4 { width: 300px; }
+.table-scroll th.col6 { width: 220px; }
+.table-scroll th.col7 { width: 130px; }
+
+
+
+
+/* Empêche le parent flex d'être élargi par le tableau */
+.contents,
+.content { min-width: 0; }
+
+/* Scrollbar discrète, dans le style du projet */
+.table-scroll::-webkit-scrollbar { height: 8px; }
+.table-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
+.table-scroll::-webkit-scrollbar-thumb { background: #123779; border-radius: 5px; }
+
+.table-scroll td {
+    overflow-wrap: anywhere;
 }

@@ -232,11 +232,8 @@ app.post("/newPassword", (req, res) => {
 
 
 app.get("/badge", (req, res) => {
-    const sql = "SELECT * FROM badge";
-    db.query(sql)
-        .then(([rows]) => {
-            res.send(rows);
-        })
+    db.query("SELECT * FROM badge")
+        .then(([rows]) => res.send(rows))
         .catch(err => {
             console.error("Erreur SQL :", err);
             res.status(500).send("Erreur serveur");
@@ -248,16 +245,44 @@ app.post("/majbadge", (req, res) => {
     if (!token) return res.status(400).send("Token manquant");
 
     db.query(
-        "INSERT INTO badge (token,created_at) VALUES (?, NOW())",
-        [token]).then(([rows]) => {
-        res.send("Mise à jour réussie !");
-    })
+        `INSERT INTO badge (token, effectue) VALUES (?, 1)
+         ON DUPLICATE KEY UPDATE effectue = 1`,
+        [token]
+    )
+        .then(() => res.send("Badge effectué enregistré !"))
         .catch(err => {
+            console.error("Erreur SQL :", err);
+            res.status(500).send("Erreur serveur");
+        });
+});
 
-            if (err.code === "ER_DUP_ENTRY") {
-                return res.send("Badge déjà enregistré");
-            }
+app.post("/majbadge-retire", (req, res) => {
+    const { token } = req.body;
+    if (!token) return res.status(400).send("Token manquant");
 
+    db.query(
+        `INSERT INTO badge (token, effectue, retire) VALUES (?, 0, 1)
+         ON DUPLICATE KEY UPDATE retire = 1`,
+        [token]
+    )
+        .then(() => res.send("Badge retiré enregistré !"))
+        .catch(err => {
+            console.error("Erreur SQL :", err);
+            res.status(500).send("Erreur serveur");
+        });
+});
+
+app.post("/majbadge-suscite", (req, res) => {
+    const { token } = req.body;
+    if (!token) return res.status(400).send("Token manquant");
+
+    db.query(
+        `INSERT INTO badge (token, effectue, suscite) VALUES (?, 0, 1)
+         ON DUPLICATE KEY UPDATE suscite = 1`,
+        [token]
+    )
+        .then(() => res.send("Badge suscité enregistré !"))
+        .catch(err => {
             console.error("Erreur SQL :", err);
             res.status(500).send("Erreur serveur");
         });

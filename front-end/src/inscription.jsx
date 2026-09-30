@@ -221,7 +221,7 @@ export default function Inscription() {
 
 
   useEffect(() => {
-    axios.get("http://localhost:3006/badge")
+    axios.get("https://back-office-bfd.vercel.app/badge")
       .then((res) => {
         setBadge(res.data);
       })
@@ -258,7 +258,7 @@ export default function Inscription() {
       setBadge((prev) => [...prev, { token: item.token }]);
 
       axios
-        .post("http://localhost:3006/majbadge", { token: item.token })
+        .post("https://back-office-bfd.vercel.app/majbadge", { token: item.token })
         .then(() => {
           Swal.fire({
             title: "Badge enregistré !",

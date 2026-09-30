@@ -37,39 +37,45 @@ export default function InscriptionReussie() {
 
 
   function ExportPdf() {
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF("l", "mm", "a4");
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF("l", "mm", "a4");
 
-    const originalTable = document.getElementById("table");
-    const tableClone = originalTable.cloneNode(true);
+  const originalTable = document.getElementById("table");
+  const tableClone = originalTable.cloneNode(true);
 
-    // En-tête de la dernière colonne : remplacer l'icône par du texte
-    const lastTh = tableClone.querySelector("thead tr th:last-child");
-    if (lastTh) lastTh.textContent = "Badge";
+  // En-têtes des 3 dernières colonnes
+  const ths = tableClone.querySelectorAll("thead tr th");
+  ["Badge effectué", "Badge retiré", "Badge suscité"].forEach((txt, i) => {
+    const th = ths[ths.length - 3 + i];
+    if (th) th.textContent = txt;
+  });
 
-    // Lignes : remplacer la checkbox par Oui / Non
-    const originalRows = originalTable.querySelectorAll("tbody tr");
-    tableClone.querySelectorAll("tbody tr").forEach((tr, i) => {
-      const lastTd = tr.querySelector("td:last-child");
-      const checkbox = originalRows[i].querySelector('input[type="checkbox"]');
-      if (lastTd) lastTd.textContent = checkbox?.checked ? "Oui" : "Non";
-    });
+  // Lignes : checkbox -> Oui / Non pour les 3 dernières colonnes
+  const originalRows = originalTable.querySelectorAll("tbody tr");
+  tableClone.querySelectorAll("tbody tr").forEach((tr, i) => {
+    const tds = tr.querySelectorAll("td");
+    const origTds = originalRows[i].querySelectorAll("td");
+    for (let j = tds.length - 3; j < tds.length; j++) {
+      const checkbox = origTds[j]?.querySelector('input[type="checkbox"]');
+      tds[j].textContent = checkbox?.checked ? "Oui" : "Non";
+    }
+  });
 
-    tableClone.querySelectorAll("*").forEach(el => el.removeAttribute("class"));
-    tableClone.removeAttribute("id");
+  tableClone.querySelectorAll("*").forEach(el => el.removeAttribute("class"));
+  tableClone.removeAttribute("id");
 
-    pdf.autoTable({
-      html: tableClone,
-      headStyles: {
-        fillColor: [18, 55, 121],
-        textColor: [255, 255, 255],
-        fontStyle: "bold"
-      },
-      styles: { fontSize: 8 }
-    });
+  pdf.autoTable({
+    html: tableClone,
+    headStyles: {
+      fillColor: [18, 55, 121],
+      textColor: [255, 255, 255],
+      fontStyle: "bold"
+    },
+    styles: { fontSize: 8 }
+  });
 
-    pdf.save("Inscriptions.pdf");
-  }
+  pdf.save("Inscriptions.pdf");
+}
 
   function ExportCsv() {
     const cleanData = (data, isPhone = false) => {
@@ -179,7 +185,7 @@ export default function InscriptionReussie() {
 
 
   useEffect(() => {
-    axios.get("http://localhost:3006/badge")
+    axios.get("https://back-office-bfd.vercel.app/badge")
       .then((res) => {
         setBadge(res.data);
       })
@@ -189,9 +195,21 @@ export default function InscriptionReussie() {
   }, []);
 
 
-  const toggleBadge = (item) => {
-    const dejaFait = badge.some((b) => b.token === item.token);
-    if (dejaFait) return;
+  const isDone = (item, champ) =>
+    badge.some((b) => b.token === item.token && Number(b[champ]) === 1);
+
+  const majLocal = (token, champ, valeur) => {
+    setBadge((prev) => {
+      const existe = prev.some((b) => b.token === token);
+      return existe
+        ? prev.map((b) => (b.token === token ? { ...b, [champ]: valeur } : b))
+        : [...prev, { token, effectue: 0, retire: 0, suscite: 0, [champ]: valeur }];
+    });
+  };
+
+  // ---- Badge effectué ----
+  const toggleEffectue = (item) => {
+    if (isDone(item, "effectue")) return;
 
     Swal.fire({
       title: "Confirmer le badge ?",
@@ -209,14 +227,12 @@ export default function InscriptionReussie() {
       },
       buttonsStyling: false,
     }).then((result) => {
-      // Annulé : on ne fait rien, la case reste décochée
       if (!result.isConfirmed) return;
 
-      // Mise à jour immédiate de l'interface
-      setBadge((prev) => [...prev, { token: item.token }]);
+      majLocal(item.token, "effectue", 1);
 
       axios
-        .post("http://localhost:3006/majbadge", { token: item.token })
+        .post("https://back-office-bfd.vercel.app/majbadge", { token: item.token })
         .then(() => {
           Swal.fire({
             title: "Badge enregistré !",
@@ -234,13 +250,135 @@ export default function InscriptionReussie() {
         })
         .catch((err) => {
           console.log(err);
-
-          // En cas d'erreur, on annule
-          setBadge((prev) => prev.filter((b) => b.token !== item.token));
+          majLocal(item.token, "effectue", 0);
 
           Swal.fire({
             title: "Erreur",
             text: "Impossible d'enregistrer le badge.",
+            icon: "error",
+            confirmButtonText: "OK",
+            background: "#123779",
+            customClass: {
+              confirmButton: "my-confirm-btn",
+              title: "swal-title",
+              htmlContainer: "swal-text",
+            },
+            buttonsStyling: false,
+          });
+        });
+    });
+  };
+
+  // ---- Badge retiré ----
+  const toggleRetire = (item) => {
+    if (isDone(item, "retire")) return;
+
+    Swal.fire({
+      title: "Confirmer le retrait ?",
+      text: `Confirmez-vous que ${item.nom_prenom} a retiré son badge ? Cette action ne pourra pas être annulée.`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Continuer",
+      cancelButtonText: "Annuler",
+      background: "#123779",
+      customClass: {
+        confirmButton: "my-confirm-btn",
+        cancelButton: "my-cancel-btn",
+        title: "swal-title",
+        htmlContainer: "swal-text",
+      },
+      buttonsStyling: false,
+    }).then((result) => {
+      if (!result.isConfirmed) return;
+
+      majLocal(item.token, "retire", 1);
+
+      axios
+        .post("https://back-office-bfd.vercel.app/majbadge-retire", { token: item.token })
+        .then(() => {
+          Swal.fire({
+            title: "Retrait enregistré !",
+            text: "Le badge de cet inscrit est marqué comme retiré.",
+            icon: "success",
+            confirmButtonText: "OK",
+            background: "#123779",
+            customClass: {
+              confirmButton: "my-confirm-btn",
+              title: "swal-title",
+              htmlContainer: "swal-text",
+            },
+            buttonsStyling: false,
+          });
+        })
+        .catch((err) => {
+          console.log(err);
+          majLocal(item.token, "retire", 0);
+
+          Swal.fire({
+            title: "Erreur",
+            text: "Impossible d'enregistrer le retrait.",
+            icon: "error",
+            confirmButtonText: "OK",
+            background: "#123779",
+            customClass: {
+              confirmButton: "my-confirm-btn",
+              title: "swal-title",
+              htmlContainer: "swal-text",
+            },
+            buttonsStyling: false,
+          });
+        });
+    });
+  };
+
+  // ---- Badge suscité ----
+  const toggleSuscite = (item) => {
+    if (isDone(item, "suscite")) return;
+
+    Swal.fire({
+      title: "Confirmer le badge suscité ?",
+      text: `Confirmez-vous le badge suscité pour ${item.nom_prenom} ? Cette action ne pourra pas être annulée.`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Continuer",
+      cancelButtonText: "Annuler",
+      background: "#123779",
+      customClass: {
+        confirmButton: "my-confirm-btn",
+        cancelButton: "my-cancel-btn",
+        title: "swal-title",
+        htmlContainer: "swal-text",
+      },
+      buttonsStyling: false,
+    }).then((result) => {
+      if (!result.isConfirmed) return;
+
+      majLocal(item.token, "suscite", 1);
+
+      axios
+        .post("https://back-office-bfd.vercel.app/majbadge-suscite", { token: item.token })
+        .then(() => {
+          Swal.fire({
+            title: "Badge suscité enregistré !",
+            text: "Le badge suscité de cet inscrit est enregistré.",
+            icon: "success",
+            confirmButtonText: "OK",
+            background: "#123779",
+            customClass: {
+              confirmButton: "my-confirm-btn",
+              title: "swal-title",
+              htmlContainer: "swal-text",
+            },
+            buttonsStyling: false,
+          });
+        })
+        .catch((err) => {
+          console.log(err);
+          majLocal(item.token, "suscite", 0);
+
+          Swal.fire({
+            title: "Erreur",
+            text: "Impossible d'enregistrer le badge suscité.",
             icon: "error",
             confirmButtonText: "OK",
             background: "#123779",
@@ -396,86 +534,108 @@ export default function InscriptionReussie() {
 
       </div>
       <div className="content">
-        <table id='table'>
-          <thead>
-            <tr>
-              <th className='col1'>N°</th>
-              <th className='col2'>Inscrits</th>
-              <th className='col3'>Nationalité</th>
-              <th className='col4'>Email</th>
-              <th className='col6'>Organisation</th>
-              <th className='col7'>status</th>
-              <th className='col1'><FaIdBadge /></th>
-            </tr>
-          </thead>
-          <tbody>
-            {(
-              !searchValue
-                ? inscription
-                : inscription.filter(item =>
-                  [
-                    "nom_prenom",
-                    "email",
-                    "tel",
-                    "nationalite",
-                    "ville",
-                    "organisation",
-                    "fonction",
-                    "secteur_activite",
-                    "payment_type",
-                    "status"
-                  ].some(key =>
-                    item[key]?.toString().toLowerCase().includes(searchValue.toLowerCase())
-                  )
-                )
-            ).map((item, key) => {
-              return (
-                <tr key={key} onClick={() => { setOverlay(true); setOverlayItem(inscription.filter((i) => i.id === item.id)[0]) }}>
-                  <td>{item.id}</td>
-                  <td className='nom'> <div className="icon">{
-                    item.payment_type === "mollie" ? (
-                      <FaCreditCard className="i" />
-                    ) : item.payment_type === "mobile_money" ? (
-                      <FaMobileAlt className="i" />
-                    ) : item.payment_type === "physique" ? (
-                      <FaHandHoldingUsd className="i" />
-                    ) : (
-                      <FaUserClock className="i" />
+        <div className="table-scroll">
+          <table id='table'>
+            <thead>
+              <tr>
+                <th className='col1'>N°</th>
+                <th className='col2'>Inscrits</th>
+                <th className='col4'>Email</th>
+                <th className='col6'>Organisation</th>
+                <th className='col6'>Type participant</th>
+                <th className='col6'>Badge effectué</th>
+                <th className='col6'>Badge retiré</th>
+                <th className='col6'>Badge suscite</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(
+                !searchValue
+                  ? inscription
+                  : inscription.filter(item =>
+                    [
+                      "nom_prenom",
+                      "email",
+                      "tel",
+                      "nationalite",
+                      "ville",
+                      "organisation",
+                      "fonction",
+                      "secteur_activite",
+                      "payment_type",
+                      "status"
+                    ].some(key =>
+                      item[key]?.toString().toLowerCase().includes(searchValue.toLowerCase())
                     )
-                  }</div><span>{item.nom_prenom}</span></td>
-                  <td className='pays'>{item.nationalite}</td>
-                  <td className='email'>{item.email}</td>
-                  <td className='institution'>{item.organisation}</td>
-                  <td className='statustd'>
-                    <span
-                      className={
-                        ["paid", "manuelle", "organisateur", "sponsor", "partenaire"].includes(item.status)
-                          ? "paid"
-                          : item.status == "expired"
-                            ? "expired"
-                            : item.status == "pending"
-                              ? "pending"
-                              : "expired"
-                      }
-                    >
-                      {item.status}
-                    </span>
-                  </td>
-                  <td onClick={(e) => e.stopPropagation()}>
-                    {PAID_STATUSES.includes(item.status) && (
-                      <input
-                        type="checkbox"
-                        checked={badge.some((b) => b.token === item.token)}
-                        onChange={() => toggleBadge(item)}
-                        style={{ cursor: "pointer" }}
-                      />
-                    )}
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+                  )
+              ).map((item, key) => {
+                return (
+                  <tr key={key} onClick={() => { setOverlay(true); setOverlayItem(inscription.filter((i) => i.id === item.id)[0]) }}>
+                    <td>{item.id}</td>
+                    <td className='nom'> <div className="icon">{
+                      item.payment_type === "mollie" ? (
+                        <FaCreditCard className="i" />
+                      ) : item.payment_type === "mobile_money" ? (
+                        <FaMobileAlt className="i" />
+                      ) : item.payment_type === "physique" ? (
+                        <FaHandHoldingUsd className="i" />
+                      ) : (
+                        <FaUserClock className="i" />
+                      )
+                    }</div><span>{item.nom_prenom}</span></td>
+                    <td className='email'>{item.email}</td>
+                    <td className='institution'>{item.organisation}</td>
+                    <td className='statustd'>
+                      <span
+                        className={
+                          ["paid", "manuelle"].includes(item.status)
+                            ? "participant"
+                            : item.status == "organisateur"
+                              ? "organisateur"
+                              : item.status == "partenaire"
+                                ? "partenaire"
+                                : "vip"
+                        }
+                      >
+                        {["paid", "manuelle"].includes(item.status) ? "participant" : item.status}
+                      </span>
+                    </td>
+                    <td onClick={(e) => e.stopPropagation()}>
+                      {PAID_STATUSES.includes(item.status) && (
+                        <input
+                          type="checkbox"
+                          checked={isDone(item, "effectue")}
+                          onChange={() => toggleEffectue(item)}
+                          style={{ cursor: "pointer" }}
+                        />
+                      )}
+                    </td>
+                    <td onClick={(e) => e.stopPropagation()}>
+                      {PAID_STATUSES.includes(item.status) && (
+                        <input
+                          type="checkbox"
+                          checked={isDone(item, "retire")}
+                          onChange={() => toggleRetire(item)}
+                          style={{ cursor: "pointer" }}
+                        />
+                      )}
+                    </td>
+                    <td onClick={(e) => e.stopPropagation()}>
+                      {PAID_STATUSES.includes(item.status) && (
+                        <input
+                          type="checkbox"
+                          checked={isDone(item, "suscite")}
+                          onChange={() => toggleSuscite(item)}
+                          style={{ cursor: "pointer" }}
+                        />
+                      )}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
 
     </div>
