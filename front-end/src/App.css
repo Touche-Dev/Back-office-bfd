@@ -1972,3 +1972,79 @@ tbody tr:hover {
 .table-scroll td {
     overflow-wrap: anywhere;
 }
+
+
+
+
+.recaps {
+    margin-top: 0px;
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.recap {
+    margin-top: 50px;
+    width: 100%;
+    max-width: 496px;
+    border: 1px solid rgb(18, 55, 121, 0.5);
+    border-radius: 6px;
+    box-sizing: border-box;
+    padding: 20px 25px;
+}
+
+.recap-title {
+    margin: 0 0 15px 0;
+    color: #123779;
+    font-family: Bricolage Grotesque, sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.recap-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;                          /* modifié : grille au lieu de flex column */
+    grid-template-columns: repeat(2, 1fr);  /* modifié : 2 colonnes */
+    column-gap: 30px;                       /* ajouté : espace entre les colonnes */
+}
+
+.recap-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid rgb(0, 0, 0, 0.08);
+    font-family: "Poppins", sans-serif;
+    font-size: 15px;
+    color: #1A1719;
+}
+
+.recap-list li:nth-last-child(-n+2) {       /* modifié : les 2 derniers, pas seulement le dernier */
+    border-bottom: none;
+}
+
+.recap-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.recap-list strong {
+    font-size: 18px;
+    font-weight: 600;
+    color: #123779;
+}
+
+.dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.dot.participant  { background-color: #123779; }
+.dot.organisateur { background-color: rgba(70, 178, 110, 1); }
+.dot.partenaire   { background-color: black; }
+.dot.vip          { background-color: #D4AF37; }

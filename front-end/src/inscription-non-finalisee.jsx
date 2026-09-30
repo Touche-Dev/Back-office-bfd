@@ -12,7 +12,7 @@ import Swal from "sweetalert2";
 import { FaCreditCard, FaMobileAlt, FaHandHoldingUsd } from "react-icons/fa";
 
 // Statuts considérés comme "finalisés" / déjà validés
-const PAID_STATUSES = ["paid", "manuelle", "organisateur", "sponsor", "partenaire"];
+const PAID_STATUSES = ["paid", "manuelle", "organisateur", "vip", "partenaire"];
 
 export default function InscriptionNonFinalisee() {
   const [inscription, setInscription] = useState([])
@@ -692,75 +692,77 @@ export default function InscriptionNonFinalisee() {
 
       </div>
       <div className="content">
-        <table id='table'>
-          <thead>
-            <tr>
-              <th className='col1'>N°</th>
-              <th className='col2'>Inscrits</th>
-              <th className='col3'>Nationalité</th>
-              <th className='col4'>Email</th>
-              <th className='col6'>Organisation</th>
-              <th className='col7'>status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {(
-              !searchValue
-                ? inscription
-                : inscription.filter(item =>
-                  [
-                    "nom_prenom",
-                    "email",
-                    "tel",
-                    "nationalite",
-                    "ville",
-                    "organisation",
-                    "fonction",
-                    "secteur_activite",
-                    "payment_type",
-                    "status"
-                  ].some(key =>
-                    item[key]?.toString().toLowerCase().includes(searchValue.toLowerCase())
-                  )
-                )
-            ).map((item, key) => {
-              return (
-                <tr key={key} onClick={() => { setOverlay(true); setOverlayItem(inscription.filter((i) => i.id === item.id)[0]) }}>
-                  <td>{item.id}</td>
-                  <td className='nom'> <div className="icon">{
-                    item.payment_type === "mollie" ? (
-                      <FaCreditCard className="i" />
-                    ) : item.payment_type === "mobile_money" ? (
-                      <FaMobileAlt className="i" />
-                    ) : item.payment_type === "physique" ? (
-                      <FaHandHoldingUsd className="i" />
-                    ) : (
-                      <FaUserClock className="i" />
+        <div className="table-scroll">
+          <table id='table'>
+            <thead>
+              <tr>
+                <th className='col1'>N°</th>
+                <th className='col2'>Inscrits</th>
+                <th className='col3'>Nationalité</th>
+                <th className='col4'>Email</th>
+                <th className='col6'>Organisation</th>
+                <th className='col7'>status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(
+                !searchValue
+                  ? inscription
+                  : inscription.filter(item =>
+                    [
+                      "nom_prenom",
+                      "email",
+                      "tel",
+                      "nationalite",
+                      "ville",
+                      "organisation",
+                      "fonction",
+                      "secteur_activite",
+                      "payment_type",
+                      "status"
+                    ].some(key =>
+                      item[key]?.toString().toLowerCase().includes(searchValue.toLowerCase())
                     )
-                  }</div><span>{item.nom_prenom}</span></td>
-                  <td className='pays'>{item.nationalite}</td>
-                  <td className='email'>{item.email}</td>
-                  <td className='institution'>{item.organisation}</td>
-                  <td className='statustd'>
-                    <span
-                      className={
-                        PAID_STATUSES.includes(item.status)
-                          ? "paid"
-                          : item.status == "expired"
-                            ? "expired"
-                            : item.status == "pending"
-                              ? "pending"
-                              : "expired"
-                      }
-                    >
-                      {item.status}
-                    </span>
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+                  )
+              ).map((item, key) => {
+                return (
+                  <tr key={key} onClick={() => { setOverlay(true); setOverlayItem(inscription.filter((i) => i.id === item.id)[0]) }}>
+                    <td>{item.id}</td>
+                    <td className='nom'> <div className="icon">{
+                      item.payment_type === "mollie" ? (
+                        <FaCreditCard className="i" />
+                      ) : item.payment_type === "mobile_money" ? (
+                        <FaMobileAlt className="i" />
+                      ) : item.payment_type === "physique" ? (
+                        <FaHandHoldingUsd className="i" />
+                      ) : (
+                        <FaUserClock className="i" />
+                      )
+                    }</div><span>{item.nom_prenom}</span></td>
+                    <td className='pays'>{item.nationalite}</td>
+                    <td className='email'>{item.email}</td>
+                    <td className='institution'>{item.organisation}</td>
+                    <td className='statustd'>
+                      <span
+                        className={
+                          PAID_STATUSES.includes(item.status)
+                            ? "paid"
+                            : item.status == "expired"
+                              ? "expired"
+                              : item.status == "pending"
+                                ? "pending"
+                                : "expired"
+                        }
+                      >
+                        {item.status}
+                      </span>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
 
     </div>

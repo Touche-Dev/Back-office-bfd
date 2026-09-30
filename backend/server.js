@@ -231,6 +231,7 @@ app.post("/newPassword", (req, res) => {
 });
 
 
+
 app.get("/badge", (req, res) => {
     db.query("SELECT * FROM badge")
         .then(([rows]) => res.send(rows))
@@ -241,13 +242,14 @@ app.get("/badge", (req, res) => {
 });
 
 app.post("/majbadge", (req, res) => {
-    const { token } = req.body;
+    const { token, value } = req.body;
     if (!token) return res.status(400).send("Token manquant");
+    const val = value ? 1 : 0;
 
     db.query(
-        `INSERT INTO badge (token, effectue) VALUES (?, 1)
-         ON DUPLICATE KEY UPDATE effectue = 1`,
-        [token]
+        `INSERT INTO badge (token, effectue) VALUES (?, ?)
+         ON DUPLICATE KEY UPDATE effectue = ?`,
+        [token, val, val]
     )
         .then(() => res.send("Badge effectué enregistré !"))
         .catch(err => {
@@ -257,13 +259,14 @@ app.post("/majbadge", (req, res) => {
 });
 
 app.post("/majbadge-retire", (req, res) => {
-    const { token } = req.body;
+    const { token, value } = req.body;
     if (!token) return res.status(400).send("Token manquant");
+    const val = value ? 1 : 0;
 
     db.query(
-        `INSERT INTO badge (token, effectue, retire) VALUES (?, 0, 1)
-         ON DUPLICATE KEY UPDATE retire = 1`,
-        [token]
+        `INSERT INTO badge (token, effectue, retire) VALUES (?, 0, ?)
+         ON DUPLICATE KEY UPDATE retire = ?`,
+        [token, val, val]
     )
         .then(() => res.send("Badge retiré enregistré !"))
         .catch(err => {
@@ -273,13 +276,14 @@ app.post("/majbadge-retire", (req, res) => {
 });
 
 app.post("/majbadge-suscite", (req, res) => {
-    const { token } = req.body;
+    const { token, value } = req.body;
     if (!token) return res.status(400).send("Token manquant");
+    const val = value ? 1 : 0;
 
     db.query(
-        `INSERT INTO badge (token, effectue, suscite) VALUES (?, 0, 1)
-         ON DUPLICATE KEY UPDATE suscite = 1`,
-        [token]
+        `INSERT INTO badge (token, effectue, suscite) VALUES (?, 0, ?)
+         ON DUPLICATE KEY UPDATE suscite = ?`,
+        [token, val, val]
     )
         .then(() => res.send("Badge suscité enregistré !"))
         .catch(err => {

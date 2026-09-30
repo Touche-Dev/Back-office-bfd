@@ -11,7 +11,7 @@ import { FaUsers } from "react-icons/fa";
 import { BsFiletypePdf } from "react-icons/bs";
 
 // Statuts considérés comme "payés" / validés
-const PAID_STATUSES = ["paid", "manuelle", "organisateur", "sponsor", "partenaire"];
+const PAID_STATUSES = ["paid", "manuelle", "organisateur", "vip", "partenaire"];
 
 export default function Dashboard() {
   const navigation = useNavigate()
@@ -140,6 +140,81 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
+          <div className="recaps">
+
+            {/* Récap : réussi */}
+            <div className="recap">
+              <h4 className="recap-title">Récapitulatif par type de participant (Réussi)</h4>
+              <ul className="recap-list">
+                <li>
+                  <span className="recap-label"><span className="dot participant"></span>Participants</span>
+                  <strong>
+                    {inscriptionToday.filter((item) => ["paid", "manuelle"].includes(item.status)).length}
+                  </strong>
+                </li>
+                <li>
+                  <span className="recap-label"><span className="dot organisateur"></span>Organisateurs</span>
+                  <strong>{inscriptionToday.filter((item) => ["organisateur"].includes(item.status)).length}</strong>
+                </li>
+                <li>
+                  <span className="recap-label"><span className="dot partenaire"></span>Partenaires</span>
+                  <strong>{inscriptionToday.filter((item) => ["partenaire"].includes(item.status)).length}</strong>
+                </li>
+                <li>
+                  <span className="recap-label"><span className="dot vip"></span>VIP</span>
+                  <strong>{inscriptionToday.filter((item) => ["vip"].includes(item.status)).length}</strong>
+                </li>
+              </ul>
+            </div>
+
+            {/* Récap : non finalisé */}
+            <div className="recap">
+              <h4 className="recap-title">Récapitulatif par type de participant (Non-finalisé)</h4>
+              <ul className="recap-list">
+                <li>
+                  <span className="recap-label"><span className="dot participant"></span>Participants</span>
+                  <strong>{
+                    (() => {
+                      const allowedStatuses = ["pending", "canceled", "expired", "failed"];
+
+                      // regrouper les items par email
+                      const emailGroups = {};
+
+                      inscriptionToday.forEach(item => {
+                        if (!emailGroups[item.email]) {
+                          emailGroups[item.email] = [];
+                        }
+                        emailGroups[item.email].push(item);
+                      });
+
+                      // filtrer les emails
+                      const result = Object.values(emailGroups)
+                        .filter(items =>
+                          !items.some(i => PAID_STATUSES.includes(i.status)) &&
+                          items.some(i => allowedStatuses.includes(i.status))
+                        )
+                        .map(items => items[0].email); // garder un seul email
+
+                      return result.length;
+                    })()
+                  }</strong>
+                </li>
+                <li>
+                  <span className="recap-label"><span className="dot organisateur"></span>Organisateurs</span>
+                  <strong>0</strong>
+                </li>
+                <li>
+                  <span className="recap-label"><span className="dot partenaire"></span>Partenaires</span>
+                  <strong>0</strong>
+                </li>
+                <li>
+                  <span className="recap-label"><span className="dot vip"></span>VIP</span>
+                  <strong>0</strong>
+                </li>
+              </ul>
+            </div>
+
+          </div>
         </div>
         <div className="content1">
           <div className="horaire">Total</div>
@@ -218,6 +293,81 @@ export default function Dashboard() {
                 <FaUsers className='i' />
               </div>
             </div>
+          </div>
+          <div className="recaps">
+
+            {/* Récap : réussi */}
+            <div className="recap">
+              <h4 className="recap-title">Récapitulatif par type de participant (Réussi)</h4>
+              <ul className="recap-list">
+                <li>
+                  <span className="recap-label"><span className="dot participant"></span>Participants</span>
+                  <strong>
+                    {inscription.filter((item) => ["paid", "manuelle"].includes(item.status)).length}
+                  </strong>
+                </li>
+                <li>
+                  <span className="recap-label"><span className="dot organisateur"></span>Organisateurs</span>
+                  <strong>{inscription.filter((item) => ["organisateur"].includes(item.status)).length}</strong>
+                </li>
+                <li>
+                  <span className="recap-label"><span className="dot partenaire"></span>Partenaires</span>
+                  <strong>{inscription.filter((item) => ["partenaire"].includes(item.status)).length}</strong>
+                </li>
+                <li>
+                  <span className="recap-label"><span className="dot vip"></span>VIP</span>
+                  <strong>{inscription.filter((item) => ["vip"].includes(item.status)).length}</strong>
+                </li>
+              </ul>
+            </div>
+
+            {/* Récap : non finalisé */}
+            <div className="recap">
+              <h4 className="recap-title">Récapitulatif par type de participant (Non-finalisé)</h4>
+              <ul className="recap-list">
+                <li>
+                  <span className="recap-label"><span className="dot participant"></span>Participants</span>
+                  <strong>{
+                    (() => {
+                      const allowedStatuses = ["pending", "canceled", "expired", "failed"];
+
+                      // regrouper les items par email
+                      const emailGroups = {};
+
+                      inscription.forEach(item => {
+                        if (!emailGroups[item.email]) {
+                          emailGroups[item.email] = [];
+                        }
+                        emailGroups[item.email].push(item);
+                      });
+
+                      // filtrer les emails
+                      const result = Object.values(emailGroups)
+                        .filter(items =>
+                          !items.some(i => PAID_STATUSES.includes(i.status)) &&
+                          items.some(i => allowedStatuses.includes(i.status))
+                        )
+                        .map(items => items[0].email); // garder un seul email
+
+                      return result.length;
+                    })()
+                  }</strong>
+                </li>
+                <li>
+                  <span className="recap-label"><span className="dot organisateur"></span>Organisateurs</span>
+                  <strong>0</strong>
+                </li>
+                <li>
+                  <span className="recap-label"><span className="dot partenaire"></span>Partenaires</span>
+                  <strong>0</strong>
+                </li>
+                <li>
+                  <span className="recap-label"><span className="dot vip"></span>VIP</span>
+                  <strong>0</strong>
+                </li>
+              </ul>
+            </div>
+
           </div>
         </div>
       </div>

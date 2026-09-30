@@ -20,7 +20,7 @@ export default function Inscription() {
   const context = useOutletContext();
 
   // Statuts considérés comme "finalisés" / déjà validés
-  const PAID_STATUSES = ["paid", "manuelle", "organisateur", "sponsor", "partenaire"];
+  const PAID_STATUSES = ["paid", "manuelle", "organisateur", "vip", "partenaire"];
 
   const { searchValue } = useOutletContext();
   useEffect(() => {
@@ -37,7 +37,7 @@ export default function Inscription() {
 
 
 
-  /*function ExportPdf() {
+  function ExportPdf() {
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF("l", "mm", "a4");
 
@@ -60,10 +60,10 @@ export default function Inscription() {
     });
 
     pdf.save("Inscriptions.pdf");
-  }*/
+  }
 
 
-  function ExportPdf() {
+  /*function ExportPdf() {
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF("l", "mm", "a4");
 
@@ -96,7 +96,7 @@ export default function Inscription() {
     });
 
     pdf.save("Inscriptions.pdf");
-  }
+  }*/
   function ExportCsv() {
     const cleanData = (data, isPhone = false) => {
       if (!data && data !== 0) return "";
@@ -388,7 +388,7 @@ export default function Inscription() {
                   <h4>Status :</h4>
                   <span
                     className={
-                      ["paid", "manuelle", "organisateur", "sponsor", "partenaire"].includes(overlayItem.status)
+                      ["paid", "manuelle", "organisateur", "vip", "partenaire"].includes(overlayItem.status)
                         ? "paid"
                         : overlayItem.status == "expired"
                           ? "expired"
@@ -802,88 +802,92 @@ export default function Inscription() {
 
       </div>
       <div className="content">
-        <table id='table'>
-          <thead>
-            <tr>
-              <th className='col1'>N°</th>
-              <th className='col2'>Inscrits</th>
-              <th className='col3'>Nationalité</th>
-              <th className='col4'>Email</th>
-              <th className='col6'>Organisation</th>
-              <th className='col7'>status</th>
-              <th className='col1'><FaIdBadge /></th>
-            </tr>
-          </thead>
-          <tbody>
-            {(
-              !searchValue
-                ? inscription
-                : inscription.filter(item =>
-                  [
-                    "nom_prenom",
-                    "email",
-                    "tel",
-                    "nationalite",
-                    "ville",
-                    "organisation",
-                    "fonction",
-                    "secteur_activite",
-                    "payment_type",
-                    "status"
-                  ].some(key =>
-                    item[key]?.toString().toLowerCase().includes(searchValue.toLowerCase())
-                  )
-                )
-            ).map((item, key) => {
-              return (
-                <tr key={key} onClick={() => { setOverlay(true); setOverlayItem(inscription.filter((i) => i.id === item.id)[0]) }}>
-                  <td>{item.id}</td>
-                  <td className='nom'> <div className="icon">{
-                    item.payment_type === "mollie" ? (
-                      <FaCreditCard className="i" />
-                    ) : item.payment_type === "mobile_money" ? (
-                      <FaMobileAlt className="i" />
-                    ) : item.payment_type === "physique" ? (
-                      <FaHandHoldingUsd className="i" />
-                    ) : (
-                      <FaUserClock className="i" />
+        <div className="table-scroll">
+          <table id='table'>
+            <thead>
+              <tr>
+                <th className='col1'>N°</th>
+                <th className='col2'>Inscrits</th>
+                <th className='col3'>Nationalité</th>
+                <th className='col4'>Email</th>
+                <th className='col6'>Organisation</th>
+                <th className='col7'>status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(
+                !searchValue
+                  ? inscription
+                  : inscription.filter(item =>
+                    [
+                      "nom_prenom",
+                      "email",
+                      "tel",
+                      "nationalite",
+                      "ville",
+                      "organisation",
+                      "fonction",
+                      "secteur_activite",
+                      "payment_type",
+                      "status"
+                    ].some(key =>
+                      item[key]?.toString().toLowerCase().includes(searchValue.toLowerCase())
                     )
-                  }</div><span>{item.nom_prenom}</span></td>
-                  <td className='pays'>{item.nationalite}</td>
-                  <td className='email'>{item.email}</td>
-                  <td className='institution'>{item.organisation}</td>
-                  <td className='statustd'>
-                    <span
-                      className={
-                        ["paid", "manuelle", "organisateur", "sponsor", "partenaire"].includes(item.status)
-                          ? "paid"
-                          : item.status == "expired"
-                            ? "expired"
-                            : item.status == "pending"
-                              ? "pending"
-                              : "expired"
-                      }
-                    >
-                      {item.status}
-                    </span>
-                  </td>
+                  )
+              ).map((item, key) => {
+                return (
+                  <tr key={key} onClick={() => { setOverlay(true); setOverlayItem(inscription.filter((i) => i.id === item.id)[0]) }}>
+                    <td>{item.id}</td>
+                    <td className='nom'> <div className="icon">{
+                      item.payment_type === "mollie" ? (
+                        <FaCreditCard className="i" />
+                      ) : item.payment_type === "mobile_money" ? (
+                        <FaMobileAlt className="i" />
+                      ) : item.payment_type === "physique" ? (
+                        <FaHandHoldingUsd className="i" />
+                      ) : (
+                        <FaUserClock className="i" />
+                      )
+                    }</div><span>{item.nom_prenom}</span></td>
+                    <td className='pays'>{item.nationalite}</td>
+                    <td className='email'>{item.email}</td>
+                    <td className='institution'>{item.organisation}</td>
+                    <td className='statustd'>
+                      <span
+                        className={
+                          ["paid", "manuelle", "organisateur", "vip", "partenaire"].includes(item.status)
+                            ? "paid"
+                            : item.status == "expired"
+                              ? "expired"
+                              : item.status == "pending"
+                                ? "pending"
+                                : "expired"
+                        }
+                      >
+                        {item.status}
+                      </span>
+                    </td>
 
-                  <td onClick={(e) => e.stopPropagation()}>
-                    {PAID_STATUSES.includes(item.status) && (
-                      <input
-                        type="checkbox"
-                        checked={badge.some((b) => b.token === item.token)}
-                        onChange={() => toggleBadge(item)}
-                        style={{ cursor: "pointer" }}
-                      />
-                    )}
-                  </td>
+                    {/**
+                     * 
+                     * <td onClick={(e) => e.stopPropagation()}>
+                      {PAID_STATUSES.includes(item.status) && (
+                        <input
+                          type="checkbox"
+                          checked={badge.some((b) => b.token === item.token)}
+                          onChange={() => toggleBadge(item)}
+                          style={{ cursor: "pointer" }}
+                        />
+                      )}
+                    </td>
+                     */}
 
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
 
     </div>

@@ -103,9 +103,12 @@ export default function Sidebar() {
                             <span>< FaUsers className='i' />Inscriptions</span>
                             <IoIosArrowDown className={open1 ? "arrow active" : "arrow"} />
                         </a>
-                        <div className={open1 ? "submenu active" : "submenu"}>
+                        {/**
+                         * 
+                         <div className={open1 ? "submenu active" : "submenu"}>
                             <NavLink to="/sidebar/inscription" className={({ isActive }) => isActive ? "link active" : "link"}><span>Total</span></NavLink>
                         </div>
+                         */}
                         {isSuperAdmin && (
                             <>
                                 <div className={open1 ? "submenu active" : "submenu"}>

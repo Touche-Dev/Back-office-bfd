@@ -19,7 +19,7 @@ export default function InscriptionReussie() {
   const [badge, setBadge] = useState([])
 
 
-  const PAID_STATUSES = ["paid", "manuelle", "organisateur", "sponsor", "partenaire"];
+  const PAID_STATUSES = ["paid", "manuelle", "organisateur", "vip", "partenaire"];
 
   const { searchValue } = useOutletContext();
   useEffect(() => {
@@ -37,45 +37,45 @@ export default function InscriptionReussie() {
 
 
   function ExportPdf() {
-  const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF("l", "mm", "a4");
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF("l", "mm", "a4");
 
-  const originalTable = document.getElementById("table");
-  const tableClone = originalTable.cloneNode(true);
+    const originalTable = document.getElementById("table");
+    const tableClone = originalTable.cloneNode(true);
 
-  // En-têtes des 3 dernières colonnes
-  const ths = tableClone.querySelectorAll("thead tr th");
-  ["Badge effectué", "Badge retiré", "Badge suscité"].forEach((txt, i) => {
-    const th = ths[ths.length - 3 + i];
-    if (th) th.textContent = txt;
-  });
+    // En-têtes des 3 dernières colonnes
+    const ths = tableClone.querySelectorAll("thead tr th");
+    ["Badge effectué", "Badge retiré", "Badge suscité"].forEach((txt, i) => {
+      const th = ths[ths.length - 3 + i];
+      if (th) th.textContent = txt;
+    });
 
-  // Lignes : checkbox -> Oui / Non pour les 3 dernières colonnes
-  const originalRows = originalTable.querySelectorAll("tbody tr");
-  tableClone.querySelectorAll("tbody tr").forEach((tr, i) => {
-    const tds = tr.querySelectorAll("td");
-    const origTds = originalRows[i].querySelectorAll("td");
-    for (let j = tds.length - 3; j < tds.length; j++) {
-      const checkbox = origTds[j]?.querySelector('input[type="checkbox"]');
-      tds[j].textContent = checkbox?.checked ? "Oui" : "Non";
-    }
-  });
+    // Lignes : checkbox -> Oui / Non pour les 3 dernières colonnes
+    const originalRows = originalTable.querySelectorAll("tbody tr");
+    tableClone.querySelectorAll("tbody tr").forEach((tr, i) => {
+      const tds = tr.querySelectorAll("td");
+      const origTds = originalRows[i].querySelectorAll("td");
+      for (let j = tds.length - 3; j < tds.length; j++) {
+        const checkbox = origTds[j]?.querySelector('input[type="checkbox"]');
+        tds[j].textContent = checkbox?.checked ? "Oui" : "Non";
+      }
+    });
 
-  tableClone.querySelectorAll("*").forEach(el => el.removeAttribute("class"));
-  tableClone.removeAttribute("id");
+    tableClone.querySelectorAll("*").forEach(el => el.removeAttribute("class"));
+    tableClone.removeAttribute("id");
 
-  pdf.autoTable({
-    html: tableClone,
-    headStyles: {
-      fillColor: [18, 55, 121],
-      textColor: [255, 255, 255],
-      fontStyle: "bold"
-    },
-    styles: { fontSize: 8 }
-  });
+    pdf.autoTable({
+      html: tableClone,
+      headStyles: {
+        fillColor: [18, 55, 121],
+        textColor: [255, 255, 255],
+        fontStyle: "bold"
+      },
+      styles: { fontSize: 8 }
+    });
 
-  pdf.save("Inscriptions.pdf");
-}
+    pdf.save("Inscriptions-Réussies.pdf");
+  }
 
   function ExportCsv() {
     const cleanData = (data, isPhone = false) => {
@@ -116,7 +116,10 @@ export default function InscriptionReussie() {
       "Preuve de paiement",
       "Status",
       "Email envoyé",
-      "Date"
+      "Date",
+      "Badge effectué",
+      "Badge retiré",
+      "Badge suscité"
     ];
 
     const rows = inscription.map((item, key) => [
@@ -148,7 +151,10 @@ export default function InscriptionReussie() {
       cleanData(item.email_sent),
       item.created_at
         ? `${String(new Date(item.created_at).getDate()).padStart(2, "0")}/${String(new Date(item.created_at).getMonth() + 1).padStart(2, "0")}/${new Date(item.created_at).getFullYear()}`
-        : ""
+        : "",
+      isDone(item, "effectue") ? "Oui" : "Non",
+      isDone(item, "retire") ? "Oui" : "Non",
+      isDone(item, "suscite") ? "Oui" : "Non"
     ]);
 
     let csvContent = [headers.join(";")];
@@ -167,7 +173,7 @@ export default function InscriptionReussie() {
     axios.get("https://back-office-bfd.vercel.app/inscription")
       .then((res) => {
         //setInscription(res.data.filter((item) => item.status == "paid"))
-        const paidStatuses = ["paid", "manuelle", "organisateur", "sponsor", "partenaire"];
+        const paidStatuses = ["paid", "manuelle", "organisateur", "vip", "partenaire"];
 
         if (JSON.parse(localStorage.getItem("admin#token")).role == "super-admin") {
           setInscription(res.data.filter((item) => paidStatuses.includes(item.status)));
@@ -207,191 +213,124 @@ export default function InscriptionReussie() {
     });
   };
 
-  // ---- Badge effectué ----
-  const toggleEffectue = (item) => {
-    if (isDone(item, "effectue")) return;
+  const swalBase = {
+    background: "#123779",
+    buttonsStyling: false,
+  };
+
+  const swalClasses = (avecAnnuler = false) => ({
+    confirmButton: "my-confirm-btn",
+    ...(avecAnnuler ? { cancelButton: "my-cancel-btn" } : {}),
+    title: "swal-title",
+    htmlContainer: "swal-text",
+  });
+
+  const toggleBadge = (item, champ, route, textes) => {
+    const etaitCoche = isDone(item, champ);
+    const nouvelleValeur = etaitCoche ? 0 : 1;
+    const t = etaitCoche ? textes.annuler : textes.valider;
 
     Swal.fire({
-      title: "Confirmer le badge ?",
-      text: `Confirmez-vous que le badge de ${item.nom_prenom} est fait ? Cette action ne pourra pas être annulée.`,
+      title: t.confirmTitle,
+      text: t.confirmText(item),
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Continuer",
       cancelButtonText: "Annuler",
-      background: "#123779",
-      customClass: {
-        confirmButton: "my-confirm-btn",
-        cancelButton: "my-cancel-btn",
-        title: "swal-title",
-        htmlContainer: "swal-text",
-      },
-      buttonsStyling: false,
+      customClass: swalClasses(true),
+      ...swalBase,
     }).then((result) => {
       if (!result.isConfirmed) return;
 
-      majLocal(item.token, "effectue", 1);
+      majLocal(item.token, champ, nouvelleValeur);
 
       axios
-        .post("https://back-office-bfd.vercel.app/majbadge", { token: item.token })
+        .post(`https://back-office-bfd.vercel.app/${route}`, {
+          token: item.token,
+          value: nouvelleValeur,
+        })
         .then(() => {
           Swal.fire({
-            title: "Badge enregistré !",
-            text: "Le badge de cet inscrit est marqué comme fait.",
+            title: t.successTitle,
+            text: t.successText,
             icon: "success",
             confirmButtonText: "OK",
-            background: "#123779",
-            customClass: {
-              confirmButton: "my-confirm-btn",
-              title: "swal-title",
-              htmlContainer: "swal-text",
-            },
-            buttonsStyling: false,
+            customClass: swalClasses(),
+            ...swalBase,
           });
         })
         .catch((err) => {
           console.log(err);
-          majLocal(item.token, "effectue", 0);
+          majLocal(item.token, champ, etaitCoche ? 1 : 0); // rollback
 
           Swal.fire({
             title: "Erreur",
-            text: "Impossible d'enregistrer le badge.",
+            text: t.errorText,
             icon: "error",
             confirmButtonText: "OK",
-            background: "#123779",
-            customClass: {
-              confirmButton: "my-confirm-btn",
-              title: "swal-title",
-              htmlContainer: "swal-text",
-            },
-            buttonsStyling: false,
+            customClass: swalClasses(),
+            ...swalBase,
           });
         });
     });
   };
+
+  // ---- Badge effectué ----
+  const toggleEffectue = (item) =>
+    toggleBadge(item, "effectue", "majbadge", {
+      valider: {
+        confirmTitle: "Confirmer le badge ?",
+        confirmText: (i) => `Confirmez-vous que le badge de ${i.nom_prenom} est fait ?`,
+        successTitle: "Badge enregistré !",
+        successText: "Le badge de cet inscrit est marqué comme fait.",
+        errorText: "Impossible d'enregistrer le badge.",
+      },
+      annuler: {
+        confirmTitle: "Annuler le badge ?",
+        confirmText: (i) => `Voulez-vous vraiment annuler le badge fait de ${i.nom_prenom} ?`,
+        successTitle: "Badge annulé !",
+        successText: "Le badge de cet inscrit n'est plus marqué comme fait.",
+        errorText: "Impossible d'annuler le badge.",
+      },
+    });
 
   // ---- Badge retiré ----
-  const toggleRetire = (item) => {
-    if (isDone(item, "retire")) return;
-
-    Swal.fire({
-      title: "Confirmer le retrait ?",
-      text: `Confirmez-vous que ${item.nom_prenom} a retiré son badge ? Cette action ne pourra pas être annulée.`,
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Continuer",
-      cancelButtonText: "Annuler",
-      background: "#123779",
-      customClass: {
-        confirmButton: "my-confirm-btn",
-        cancelButton: "my-cancel-btn",
-        title: "swal-title",
-        htmlContainer: "swal-text",
+  const toggleRetire = (item) =>
+    toggleBadge(item, "retire", "majbadge-retire", {
+      valider: {
+        confirmTitle: "Confirmer le retrait ?",
+        confirmText: (i) => `Confirmez-vous que ${i.nom_prenom} a retiré son badge ?`,
+        successTitle: "Retrait enregistré !",
+        successText: "Le badge de cet inscrit est marqué comme retiré.",
+        errorText: "Impossible d'enregistrer le retrait.",
       },
-      buttonsStyling: false,
-    }).then((result) => {
-      if (!result.isConfirmed) return;
-
-      majLocal(item.token, "retire", 1);
-
-      axios
-        .post("https://back-office-bfd.vercel.app/majbadge-retire", { token: item.token })
-        .then(() => {
-          Swal.fire({
-            title: "Retrait enregistré !",
-            text: "Le badge de cet inscrit est marqué comme retiré.",
-            icon: "success",
-            confirmButtonText: "OK",
-            background: "#123779",
-            customClass: {
-              confirmButton: "my-confirm-btn",
-              title: "swal-title",
-              htmlContainer: "swal-text",
-            },
-            buttonsStyling: false,
-          });
-        })
-        .catch((err) => {
-          console.log(err);
-          majLocal(item.token, "retire", 0);
-
-          Swal.fire({
-            title: "Erreur",
-            text: "Impossible d'enregistrer le retrait.",
-            icon: "error",
-            confirmButtonText: "OK",
-            background: "#123779",
-            customClass: {
-              confirmButton: "my-confirm-btn",
-              title: "swal-title",
-              htmlContainer: "swal-text",
-            },
-            buttonsStyling: false,
-          });
-        });
+      annuler: {
+        confirmTitle: "Annuler le retrait ?",
+        confirmText: (i) => `Voulez-vous vraiment annuler le retrait du badge de ${i.nom_prenom} ?`,
+        successTitle: "Retrait annulé !",
+        successText: "Le badge de cet inscrit n'est plus marqué comme retiré.",
+        errorText: "Impossible d'annuler le retrait.",
+      },
     });
-  };
 
   // ---- Badge suscité ----
-  const toggleSuscite = (item) => {
-    if (isDone(item, "suscite")) return;
-
-    Swal.fire({
-      title: "Confirmer le badge suscité ?",
-      text: `Confirmez-vous le badge suscité pour ${item.nom_prenom} ? Cette action ne pourra pas être annulée.`,
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Continuer",
-      cancelButtonText: "Annuler",
-      background: "#123779",
-      customClass: {
-        confirmButton: "my-confirm-btn",
-        cancelButton: "my-cancel-btn",
-        title: "swal-title",
-        htmlContainer: "swal-text",
+  const toggleSuscite = (item) =>
+    toggleBadge(item, "suscite", "majbadge-suscite", {
+      valider: {
+        confirmTitle: "Confirmer le badge suscité ?",
+        confirmText: (i) => `Confirmez-vous le badge suscité pour ${i.nom_prenom} ?`,
+        successTitle: "Badge suscité enregistré !",
+        successText: "Le badge suscité de cet inscrit est enregistré.",
+        errorText: "Impossible d'enregistrer le badge suscité.",
       },
-      buttonsStyling: false,
-    }).then((result) => {
-      if (!result.isConfirmed) return;
-
-      majLocal(item.token, "suscite", 1);
-
-      axios
-        .post("https://back-office-bfd.vercel.app/majbadge-suscite", { token: item.token })
-        .then(() => {
-          Swal.fire({
-            title: "Badge suscité enregistré !",
-            text: "Le badge suscité de cet inscrit est enregistré.",
-            icon: "success",
-            confirmButtonText: "OK",
-            background: "#123779",
-            customClass: {
-              confirmButton: "my-confirm-btn",
-              title: "swal-title",
-              htmlContainer: "swal-text",
-            },
-            buttonsStyling: false,
-          });
-        })
-        .catch((err) => {
-          console.log(err);
-          majLocal(item.token, "suscite", 0);
-
-          Swal.fire({
-            title: "Erreur",
-            text: "Impossible d'enregistrer le badge suscité.",
-            icon: "error",
-            confirmButtonText: "OK",
-            background: "#123779",
-            customClass: {
-              confirmButton: "my-confirm-btn",
-              title: "swal-title",
-              htmlContainer: "swal-text",
-            },
-            buttonsStyling: false,
-          });
-        });
+      annuler: {
+        confirmTitle: "Annuler le badge suscité ?",
+        confirmText: (i) => `Voulez-vous vraiment annuler le badge suscité de ${i.nom_prenom} ?`,
+        successTitle: "Badge suscité annulé !",
+        successText: "Le badge suscité de cet inscrit n'est plus enregistré.",
+        errorText: "Impossible d'annuler le badge suscité.",
+      },
     });
-  };
 
 
 
@@ -483,7 +422,7 @@ export default function InscriptionReussie() {
                   <h4>Status :</h4>
                   <span
                     className={
-                      ["paid", "manuelle", "organisateur", "sponsor", "partenaire"].includes(overlayItem.status)
+                      ["paid", "manuelle", "organisateur", "vip", "partenaire"].includes(overlayItem.status)
                         ? "paid"
                         : overlayItem.status == "expired"
                           ? "expired"
