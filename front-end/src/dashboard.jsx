@@ -11,7 +11,7 @@ import { FaUsers } from "react-icons/fa";
 import { BsFiletypePdf } from "react-icons/bs";
 
 // Statuts considérés comme "payés" / validés
-const PAID_STATUSES = ["paid", "manuelle", "organisateur", "vip", "partenaire"];
+const PAID_STATUSES = ["paid", "manuelle", "organisateur", "sponsor", "partenaire", "institutionnel", "media"];
 
 export default function Dashboard() {
   const navigation = useNavigate()
@@ -164,6 +164,14 @@ export default function Dashboard() {
                   <span className="recap-label"><span className="dot vip"></span>VIP</span>
                   <strong>{inscriptionToday.filter((item) => ["vip"].includes(item.status)).length}</strong>
                 </li>
+                <li>
+                  <span className="recap-label"><span className="dot institutionnel"></span>Institutionnel</span>
+                  <strong>{inscriptionToday.filter((item) => ["institutionnel"].includes(item.status)).length}</strong>
+                </li>
+                <li>
+                  <span className="recap-label"><span className="dot media"></span>Médias</span>
+                  <strong>{inscriptionToday.filter((item) => ["media"].includes(item.status)).length}</strong>
+                </li>
               </ul>
             </div>
 
@@ -209,6 +217,14 @@ export default function Dashboard() {
                 </li>
                 <li>
                   <span className="recap-label"><span className="dot vip"></span>VIP</span>
+                  <strong>0</strong>
+                </li>
+                <li>
+                  <span className="recap-label"><span className="dot institutionnel"></span>Institutionnel</span>
+                  <strong>0</strong>
+                </li>
+                <li>
+                  <span className="recap-label"><span className="dot media"></span>Médias</span>
                   <strong>0</strong>
                 </li>
               </ul>
@@ -318,6 +334,14 @@ export default function Dashboard() {
                   <span className="recap-label"><span className="dot vip"></span>VIP</span>
                   <strong>{inscription.filter((item) => ["vip"].includes(item.status)).length}</strong>
                 </li>
+                <li>
+                  <span className="recap-label"><span className="dot institutionnel"></span>Institutionnel</span>
+                  <strong>{inscription.filter((item) => ["institutionnel"].includes(item.status)).length}</strong>
+                </li>
+                <li>
+                  <span className="recap-label"><span className="dot media"></span>Médias</span>
+                  <strong>{inscription.filter((item) => ["media"].includes(item.status)).length}</strong>
+                </li>
               </ul>
             </div>
 
@@ -363,6 +387,14 @@ export default function Dashboard() {
                 </li>
                 <li>
                   <span className="recap-label"><span className="dot vip"></span>VIP</span>
+                  <strong>0</strong>
+                </li>
+                <li>
+                  <span className="recap-label"><span className="dot institutionnel"></span>Institutionnel</span>
+                  <strong>0</strong>
+                </li>
+                <li>
+                  <span className="recap-label"><span className="dot media"></span>Médias</span>
                   <strong>0</strong>
                 </li>
               </ul>

@@ -20,7 +20,7 @@ export default function Inscription() {
   const context = useOutletContext();
 
   // Statuts considérés comme "finalisés" / déjà validés
-  const PAID_STATUSES = ["paid", "manuelle", "organisateur", "vip", "partenaire"];
+  const PAID_STATUSES = ["paid", "manuelle", "organisateur", "sponsor", "partenaire", "institutionnel", "media"];
 
   const { searchValue } = useOutletContext();
   useEffect(() => {
@@ -388,7 +388,7 @@ export default function Inscription() {
                   <h4>Status :</h4>
                   <span
                     className={
-                      ["paid", "manuelle", "organisateur", "vip", "partenaire"].includes(overlayItem.status)
+                      ["paid", "manuelle", "organisateur", "sponsor", "partenaire", "institutionnel", "media"].includes(overlayItem.status)
                         ? "paid"
                         : overlayItem.status == "expired"
                           ? "expired"
@@ -855,7 +855,7 @@ export default function Inscription() {
                     <td className='statustd'>
                       <span
                         className={
-                          ["paid", "manuelle", "organisateur", "vip", "partenaire"].includes(item.status)
+                          ["paid", "manuelle", "organisateur", "sponsor", "partenaire", "institutionnel", "media"].includes(item.status)
                             ? "paid"
                             : item.status == "expired"
                               ? "expired"

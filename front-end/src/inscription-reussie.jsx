@@ -19,7 +19,7 @@ export default function InscriptionReussie() {
   const [badge, setBadge] = useState([])
 
 
-  const PAID_STATUSES = ["paid", "manuelle", "organisateur", "vip", "partenaire"];
+  const PAID_STATUSES = ["paid", "manuelle", "organisateur", "vip", "partenaire", "institutionnel"];
 
   const { searchValue } = useOutletContext();
   useEffect(() => {
@@ -176,7 +176,7 @@ export default function InscriptionReussie() {
     axios.get("https://back-office-bfd.vercel.app/inscription")
       .then((res) => {
         //setInscription(res.data.filter((item) => item.status == "paid"))
-        const paidStatuses = ["paid", "manuelle", "organisateur", "vip", "partenaire"];
+        const paidStatuses = ["paid", "manuelle", "organisateur", "vip", "partenaire", "institutionnel"];
 
         if (JSON.parse(localStorage.getItem("admin#token")).role == "super-admin") {
           setInscription(res.data.filter((item) => paidStatuses.includes(item.status)));
@@ -196,7 +196,7 @@ export default function InscriptionReussie() {
   /*useEffect(() => {
     axios.get("https://back-office-bfd.vercel.app/inscription")
       .then((res) => {
-        const paidStatuses = ["paid", "manuelle", "organisateur", "vip", "partenaire"];
+        const paidStatuses = ["paid", "manuelle", "organisateur", "sponsor", "partenaire", "institutionnel", "media"];
 
         const trier = (liste) =>
           [...liste].sort((a, b) =>
@@ -471,7 +471,7 @@ export default function InscriptionReussie() {
                   <h4>Status :</h4>
                   <span
                     className={
-                      ["paid", "manuelle", "organisateur", "vip", "partenaire"].includes(overlayItem.status)
+                      ["paid", "manuelle", "organisateur", "vip", "partenaire", "institutionnel"].includes(overlayItem.status)
                         ? "paid"
                         : overlayItem.status == "expired"
                           ? "expired"
@@ -583,7 +583,11 @@ export default function InscriptionReussie() {
                               ? "organisateur"
                               : item.status == "partenaire"
                                 ? "partenaire"
-                                : "vip"
+                                : item.status == "institutionnel"
+                                  ? "institutionnel"
+                                  : item.status == "media"
+                                    ? "media"
+                                    : "vip"
                         }
                       >
                         {["paid", "manuelle"].includes(item.status) ? "participant" : item.status}

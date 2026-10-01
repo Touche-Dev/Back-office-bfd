@@ -619,6 +619,15 @@ span.participant {
     background-color: #123779;
     color: white;
 }
+span.institutionnel {
+    background-color: #7B2D8E;
+    color: white;
+}
+span.media {
+    background-color: #D6336C;
+    color: white;
+}
+
 
 span.organisateur {
     background-color: rgba(70, 178, 110, 1);
@@ -2048,3 +2057,5 @@ tbody tr:hover {
 .dot.organisateur { background-color: rgba(70, 178, 110, 1); }
 .dot.partenaire   { background-color: black; }
 .dot.vip          { background-color: #D4AF37; }
+.dot.institutionnel { background-color: #7B2D8E; }
+.dot.media { background-color: #D6336C; }

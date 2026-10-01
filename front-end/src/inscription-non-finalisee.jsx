@@ -12,7 +12,7 @@ import Swal from "sweetalert2";
 import { FaCreditCard, FaMobileAlt, FaHandHoldingUsd } from "react-icons/fa";
 
 // Statuts considérés comme "finalisés" / déjà validés
-const PAID_STATUSES = ["paid", "manuelle", "organisateur", "vip", "partenaire"];
+const PAID_STATUSES = ["paid", "manuelle", "organisateur", "sponsor", "partenaire", "institutionnel", "media"];
 
 export default function InscriptionNonFinalisee() {
   const [inscription, setInscription] = useState([])
